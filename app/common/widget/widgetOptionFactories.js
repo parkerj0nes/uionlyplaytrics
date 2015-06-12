@@ -2,9 +2,10 @@
     'use strict';
 
     var pvwidgetModule = angular.module('pvWidgets', []);
-    pvwidgetModule.factory('TimeSeriesDataModel', function ($interval, datacontext, WidgetDataModel) {
+    pvwidgetModule.factory('TimeSeriesDataModel', ['$interval', 'datacontext', 'WidgetDataModel', 'common' , function ($interval, datacontext, WidgetDataModel, common) {
 
         function TimeSeriesDataModel() {
+
         }
 
         TimeSeriesDataModel.prototype = Object.create(WidgetDataModel.prototype);
@@ -12,11 +13,16 @@
 
         angular.extend(TimeSeriesDataModel.prototype, {
             init: function () {
-                var dataModelOptions = this.dataModelOptions;
-                this.limit = (dataModelOptions && dataModelOptions.limit) ? dataModelOptions.limit : 100;
+                var WC = new common.widgetControl();
+                var widgetId = WC.generateId();
+                console.log("in TimeSeries Init!!!!!");
+                console.log(widgetId);
+                console.log(this.dataModelOptions);
+                // var dataModelOptions = this.dataModelOptions;
+                // this.limit = (dataModelOptions && dataModelOptions.limit) ? dataModelOptions.limit : 100;
 
-                this.updateScope('-');
-                this.startInterval();
+                // this.updateScope('-');
+                // this.startInterval();
             },
 
             startInterval: function () {
@@ -40,8 +46,32 @@
             }
         });
 
+        function decodeHtml(html) {
+            var txt = document.createElement("textarea");
+            txt.innerHTML = html;
+            return txt.value;
+        }
+        // vm.saveEdits = saveEdits;
+        function saveEdits() {
+            $("#user-content").html("");
+            var editElem = $("#edit");
+            console.log("input: %s", editElem.val());
+            $("#user-content").html(decodeHtml(editElem.val()))
+            localStorage.userEdits = editElem.val();
+            log("Edits saved!");
+
+        }
+        // vm.checkEdits = checkEdits;
+        function checkEdits() {
+
+            //find out if the user has previously saved edits
+            if (localStorage.userEdits != null)
+                $("#user-content").html(decodeHtml(localStorage.userEdits))
+                $("#edit").html(localStorage.userEdits);
+        }
+
         return TimeSeriesDataModel;
-    });
+    }]);
     pvwidgetModule.factory('DataTableDataModel', function ($interval, datacontext, WidgetDataModel) {
 
         function DataTableDataModel() {
@@ -52,11 +82,12 @@
 
         angular.extend(DataTableDataModel.prototype, {
             init: function () {
-                var dataModelOptions = this.dataModelOptions;
-                this.limit = (dataModelOptions && dataModelOptions.limit) ? dataModelOptions.limit : 100;
+                console.log("in DATATABLE INTI!!!!")
+                // var dataModelOptions = this.dataModelOptions;
+                // this.limit = (dataModelOptions && dataModelOptions.limit) ? dataModelOptions.limit : 100;
 
-                this.updateScope('-');
-                this.startInterval();
+                // this.updateScope('-');
+                // this.startInterval();
             },
 
             startInterval: function () {
@@ -82,7 +113,7 @@
 
         return DataTableDataModel;
     });
-    pvwidgetModule.factory('EditHtmlDataModel', function ($interval, datacontext, WidgetDataModel) {
+    pvwidgetModule.factory('EditHtmlDataModel', function ($interval, datacontext, common, WidgetDataModel) {
 
         function EditHtmlDataModel() {
         }
@@ -92,11 +123,12 @@
 
         angular.extend(EditHtmlDataModel.prototype, {
             init: function () {
+                console.log("IN EDIT HTML INTIT!!!!!1")
                 var dataModelOptions = this.dataModelOptions;
-                this.limit = (dataModelOptions && dataModelOptions.limit) ? dataModelOptions.limit : 100;
-
-                this.updateScope('-');
-                this.startInterval();
+                // this.limit = (dataModelOptions && dataModelOptions.limit) ? dataModelOptions.limit : 100;
+                console.log(dataModelOptions);
+                // this.updateScope('-');
+                // this.startInterval();
             },
 
             startInterval: function () {
@@ -151,23 +183,38 @@
             }
         ];
     });
-    pvwidgetModule.factory('pvwidgetDefinitions', ['TimeSeriesDataModel', function (TimeSeriesDataModel) {
+    pvwidgetModule.factory('pvwidgetDefinitions', ['DataModelController', function (dmc) {
         return [
           {
               name: 'TimeSeries',
               directive: 'playchart',
               dataAttrName: 'value',
-              dataModelType: TimeSeriesDataModel
+              dataModelType: dmc.TimeSeriesModel,
+              dataModelOptions: {
+                widgetId: null,
+                controllerId: null,
+                seriesId: null
+              }
           },
           {
               name: 'DataTable',
               directive: 'playtable',
-              dataModelType: TimeSeriesDataModel
+              dataModelType: dmc.DataTableModel,
+              dataModelOptions: {
+                widgetId: null,
+                controllerId: null,
+                seriesId: null
+              }
           },
           {
               name: 'Html',
               directive: 'html-edit',
-              dataModelType: TimeSeriesDataModel
+              dataModelType: dmc.EditHtmlModel,
+              dataModelOptions: {
+                widgetId: null,
+                controllerId: null,
+                seriesId: null
+              }
           }
         ];
     }]);

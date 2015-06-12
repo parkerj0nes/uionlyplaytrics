@@ -60,7 +60,7 @@
 
             var privacyCompare = function (attrs) {
                 var widgetName = "PrivacyCompare"
-                var dataUrl = 'http://localmonitoring.playverse.com:7552/Game/PrivacyChartData?game=DD2&region=USEast_NorthVirg&interval=15&start=2015-06-09T04:00:00.000Z&end=2015-06-09T19:38:55.639Z'
+                var dataUrl = 'http://stagingmetrics.playverse.com/Game/PrivacyChartData?game=DD2&region=USEast_NorthVirg&interval=15&start=2015-06-09T04:00:00.000Z&end=2015-06-09T19:38:55.639Z'
 
                 var DataCallAttrs = {
                     moduleName: (moduleName) ? moduleName :  null,
@@ -95,7 +95,7 @@
 
             var coinFlow = function (attrs) {
                 var widgetName = "coinFlow"
-                var dataUrl = 'http://localmonitoring.playverse.com:7552/Economy/GetCoinFlowMacro?game=DD2&region=0&interval=15&start=2015-04-28T00:00:00.000Z&end=2015-05-28T16:16:14.950Z'
+                var dataUrl = 'http://stagingmetrics.playverse.com/Economy/GetCoinFlowMacro?game=DD2&region=0&interval=15&start=2015-04-28T00:00:00.000Z&end=2015-05-28T16:16:14.950Z'
 
                 var DataCallAttrs = {
                     moduleName: (moduleName) ? moduleName : null,

@@ -47,11 +47,7 @@
         var onSuccess = function (results) {
 
         }
-        function decodeHtml(html) {
-            var txt = document.createElement("textarea");
-            txt.innerHTML = html;
-            return txt.value;
-        }
+
         vm.saveEdits = saveEdits;
         function saveEdits() {
             $("#user-content").html("");
@@ -70,6 +66,10 @@
                 $("#user-content").html(decodeHtml(localStorage.userEdits))
                 $("#edit").html(localStorage.userEdits);
         }
-
+        function decodeHtml(html) {
+            var txt = document.createElement("textarea");
+            txt.innerHTML = html;
+            return txt.value;
+        }
     }
 })();
