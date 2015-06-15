@@ -270,7 +270,6 @@
         vm.dashboardOptionsTest = {
             widgetButtons: false,
             widgetDefinitions: widgetinterface.getWidgetDefinitions(),
-            settingsModalOptions: widgetinterface.getModalOptions("TimeSeriesOptions"),
             defaultWidgets: widgetinterface.defaultWidgets,
             storage: common.$window.localStorage,
             storageId: 'demo_simple'

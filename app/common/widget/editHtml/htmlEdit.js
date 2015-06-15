@@ -84,3 +84,43 @@
 
     }
 })();
+
+(function () {
+    'use strict';
+    var controllerId = 'EditHtmlModalCtrl';
+    angular.module('app').controller(controllerId, ['common', 'datacontext', pvEditHtml]);
+
+    function pvEditHtml(common, datacontext) {
+        var getLogFn = common.logger.getLogFn;
+        var log = getLogFn(controllerId);
+        var wc = new common.widgetControl();
+        var vm = this;
+        console.log("html edit: %o", this);
+        activate();
+        function activate() {
+            var promises = [];
+            // checkEdits();
+            common.activateController(promises, controllerId)
+                .then(function (data) {
+                    var store = wc.getWidgetMeta();
+                    // console.log("html activated: %o", store);
+
+                });
+        }
+
+        var onFailure = function (error) {
+            console.log(error);
+        }
+
+        var onLoadCallback = function () {
+
+
+        }
+
+        var onSuccess = function (results) {
+
+        }
+
+
+    }
+})();

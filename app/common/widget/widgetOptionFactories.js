@@ -219,17 +219,6 @@
     ]);
 
     pvwidgetModule.factory('widgetinterface', ['pvwidgetDefinitions', 'pvwidgetOptionsModalConfig', 'defaultWidgets',function (definitions, ModalConfig, defaultWidgets) {
-        var getOptionsFn = function (optionSet) {
-            //fix this so it works
-            var configOptions = ModalConfig;
-            if (optionSet && typeof optionSet == "string") {
-                var match = $.grep(configOptions, function (option) { if (option.name == optionSet) return option });
-                if (match) {
-                    return match[0].modalOptions
-                }
-                return configOptions[0].modalOptions;
-            }
-        }
 
         var getWidgetDefinitionsFN = function (definition) {
             if (definition) {
@@ -240,8 +229,7 @@
 
         return {
             getWidgetDefinitions: getWidgetDefinitionsFN,
-            defaultWidgets: defaultWidgets,
-            getModalOptions: getOptionsFn
+            defaultWidgets: defaultWidgets
         }
     }]);
 

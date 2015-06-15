@@ -1,4 +1,24 @@
-﻿<div>
+﻿<div class="modal-header">
+  <button type="button" class="close" data-dismiss="modal" aria-hidden="true" ng-click="cancel()">&times;</button>
+  <h3>Custom Settings Dialog for <small>{{vm.title}}</small></h3>
+</div>
+<div class="modal-body">
+  <form name="form" novalidate class="form-horizontal">
+    <div class="form-group">
+      <label for="widgetTitle" class="col-sm-2 control-label">Title</label>
+      <div class="col-sm-10">
+        <input type="text" class="form-control" name="widgetTitle" ng-model="vm.title">
+      </div>
+    </div>
+    <div ng-if="widget.partialSettingTemplateUrl" ng-include="widget.partialSettingTemplateUrl"></div>
+  </form>
+</div>
+<div class="modal-footer">
+  <button type="button" class="btn btn-default" ng-click="cancel()">Cancel</button>
+  <button type="button" class="btn btn-primary" ng-click="ok()">OK</button>
+</div>
+
+<!-- <div>
     <button type="button" class="btn btn-default options-btn" ng-click="openModal()"><i class="glyphicon glyphicon-calendar"></i></button>
     <div ng-cloak modal="showModal" close="cancel()">
         <div ng-cloak class="modal-body">
@@ -45,4 +65,4 @@
         </div>
     </div>
 
-</div>
+</div> -->
