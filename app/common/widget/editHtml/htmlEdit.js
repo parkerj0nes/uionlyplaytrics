@@ -48,9 +48,9 @@
             }
         }
     })
-    .controller(controllerId, ['common', 'datacontext', pvEditHtml]);
+    .controller(controllerId, ['common', 'datacontext', 'EditHtmlDataModel', pvEditHtml]);
 
-    function pvEditHtml(common, datacontext) {
+    function pvEditHtml(common, datacontext, datamodel) {
         var getLogFn = common.logger.getLogFn;
         var log = getLogFn(controllerId);
         var wc = new common.widgetControl();
@@ -88,14 +88,20 @@
 (function () {
     'use strict';
     var controllerId = 'EditHtmlModalCtrl';
-    angular.module('app').controller(controllerId, ['common', 'datacontext', pvEditHtml]);
+    angular.module('app').controller(controllerId, ['$scope','$modalInstance', 'common', 'datacontext', 'EditHtmlDataModel', pvEditHtmlModalCtrl]);
 
-    function pvEditHtml(common, datacontext) {
+    function pvEditHtmlModalCtrl($scope,$modalInstance, common, datacontext, datamodel) {
+        var widgetOptions = this;
         var getLogFn = common.logger.getLogFn;
         var log = getLogFn(controllerId);
         var wc = new common.widgetControl();
-        var vm = this;
-        console.log("html edit: %o", this);
+
+        widgetOptions.title = "WE DID IT!";
+        // $scope.$on('EditHtml', function(e, data){
+        //     console.log("we extra did it!! %o", data);
+
+        // })
+        // console.log("html edit: %o", this);
         activate();
         function activate() {
             var promises = [];
@@ -103,22 +109,28 @@
             common.activateController(promises, controllerId)
                 .then(function (data) {
                     var store = wc.getWidgetMeta();
-                    // console.log("html activated: %o", store);
+                    console.log("html modal options activated: %o", $scope);
 
                 });
         }
 
-        var onFailure = function (error) {
-            console.log(error);
+        widgetOptions.cancel = cancel;
+        function cancel () {
+            console.log("cancel");
         }
 
         var onLoadCallback = function () {
 
 
         }
-
-        var onSuccess = function (results) {
-
+        widgetOptions.ok = ok;
+        function ok () {
+            console.log('calling ok from widget-specific settings controller!');
+            $modalInstance.close($scope.result);
+            $scope.$emit('GetDataModelData', {
+                dc: datacontext,
+                test: "hell yeah"
+            });
         }
 
 

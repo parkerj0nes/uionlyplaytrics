@@ -108,6 +108,12 @@
                 options.widgetId = this.widgetId;
                 scope.vm.widgetId = this.widgetId;
                 this.updateScope(options.widgetId);
+                common.$on('GetDataModelData', function(e, data){
+                    common.$broadcast('EditHtml', {
+                        w:w,
+                        o:options
+                    })
+                })
             },
             init: function () {
                 console.log("IN EDIT HTML INTIT!!!!!1 %o", this);
@@ -166,7 +172,7 @@
                 },
             EditHtmlOptions: {
                     templateUrl: 'app/common/widget/editHtml/ChartOptionsModal.html',
-                    controller: 'EditHtmlModalCtrl', // defined elsewhere,
+                    controller: 'EditHtmlModalCtrl as widgetOptions', // defined elsewhere,
                     animation: true,
                     keyboard: true
                 }
@@ -186,7 +192,14 @@
                 controllerId: null,
                 seriesId: null
               },
-              settingsModalOptions: opt.TimeSeriesOptions
+              settingsModalOptions: opt.TimeSeriesOptions,
+              onSettingsClose: function(resultFromModal, widgetModel, dashboardScope) {
+                // do something to update widgetModel, like the default implementation:
+                jQuery.extend(true, widget, result);
+              },
+              onSettingsDismiss: function(reasonForDismissal, dashboardScope) {
+                // probably do nothing here, since the user pressed cancel
+              }
           },
           {
               name: 'DataTable',
@@ -197,7 +210,14 @@
                 controllerId: null,
                 seriesId: null
               },
-              settingsModalOptions: opt.DataTableOptions
+              settingsModalOptions: opt.DataTableOptions,
+              onSettingsClose: function(result, widget, dashboardScope) {
+                // do something to update widgetModel, like the default implementation:
+                jQuery.extend(true, widget, result);
+              },
+              onSettingsDismiss: function(reason, scope) {
+                // probably do nothing here, since the user pressed cancel
+              }
           },
           {
               name: 'Html',
@@ -208,7 +228,16 @@
                 controllerId: null,
                 seriesId: null
               },
-              settingsModalOptions: opt.EditHtmlOptions
+              settingsModalOptions: opt.EditHtmlOptions,
+              onSettingsClose: function(result, widget, dashboardScope) {
+                // do something to update widgetModel, like the default implementation:
+                // console.log("poop");
+                jQuery.extend(true, widget, result);
+              },
+              onSettingsDismiss: function(reasonForDismissal, dashboardScope) {
+                // probably do nothing here, since the user pressed cancel
+                console.log("working");
+              }
           }
         ];
     }]);
