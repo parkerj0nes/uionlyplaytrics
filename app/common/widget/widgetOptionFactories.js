@@ -12,17 +12,16 @@
         TimeSeriesDataModel.prototype.constructor = WidgetDataModel;
 
         angular.extend(TimeSeriesDataModel.prototype, {
+            setup: function(widget, scope){
+                WidgetDataModel.prototype.setup.apply(this, arguments);
+                scope.widgetId = widget.dataModelOptions.widgetId;
+            },
             init: function () {
                 var WC = new common.widgetControl();
-                var widgetId = WC.generateId();
-                console.log("in TimeSeries Init!!!!!");
-                console.log(widgetId);
-                console.log(this.dataModelOptions);
-                // var dataModelOptions = this.dataModelOptions;
-                // this.limit = (dataModelOptions && dataModelOptions.limit) ? dataModelOptions.limit : 100;
-
-                // this.updateScope('-');
-                // this.startInterval();
+                var options = this.dataModelOptions;
+                this.widgetId = (options && options.widgetId != null) ? options.widgetId : WC.generateId();
+                options.widgetId = this.widgetId;
+                this.updateScope(options.widgetId);
             },
 
             startInterval: function () {
@@ -46,29 +45,7 @@
             }
         });
 
-        function decodeHtml(html) {
-            var txt = document.createElement("textarea");
-            txt.innerHTML = html;
-            return txt.value;
-        }
-        // vm.saveEdits = saveEdits;
-        function saveEdits() {
-            $("#user-content").html("");
-            var editElem = $("#edit");
-            console.log("input: %s", editElem.val());
-            $("#user-content").html(decodeHtml(editElem.val()))
-            localStorage.userEdits = editElem.val();
-            log("Edits saved!");
 
-        }
-        // vm.checkEdits = checkEdits;
-        function checkEdits() {
-
-            //find out if the user has previously saved edits
-            if (localStorage.userEdits != null)
-                $("#user-content").html(decodeHtml(localStorage.userEdits))
-                $("#edit").html(localStorage.userEdits);
-        }
 
         return TimeSeriesDataModel;
     }]);
@@ -83,8 +60,8 @@
         angular.extend(DataTableDataModel.prototype, {
             init: function () {
                 console.log("in DATATABLE INTI!!!!")
-                // var dataModelOptions = this.dataModelOptions;
-                // this.limit = (dataModelOptions && dataModelOptions.limit) ? dataModelOptions.limit : 100;
+                var dataModelOptions = this.dataModelOptions;
+                //this.limit = (dataModelOptions && dataModelOptions.limit) ? dataModelOptions.limit : 100;
 
                 // this.updateScope('-');
                 // this.startInterval();
@@ -120,14 +97,24 @@
 
         EditHtmlDataModel.prototype = Object.create(WidgetDataModel.prototype);
         EditHtmlDataModel.prototype.constructor = WidgetDataModel;
-
+        var WC = new common.widgetControl();
+        var w;
         angular.extend(EditHtmlDataModel.prototype, {
+            setup: function(widget, scope){
+                w = widget;
+                WidgetDataModel.prototype.setup.apply(this, arguments);
+                var options = widget.dataModelOptions;
+                this.widgetId = (options && options.widgetId != null) ? options.widgetId : WC.generateId();
+                options.widgetId = this.widgetId;
+                scope.vm.widgetId = this.widgetId;
+                this.updateScope(options.widgetId);
+            },
             init: function () {
-                console.log("IN EDIT HTML INTIT!!!!!1")
+                console.log("IN EDIT HTML INTIT!!!!!1 %o", this);
                 var dataModelOptions = this.dataModelOptions;
                 // this.limit = (dataModelOptions && dataModelOptions.limit) ? dataModelOptions.limit : 100;
-                console.log(dataModelOptions);
-                // this.updateScope('-');
+
+                // this.updateScope(widgetId);
                 // this.startInterval();
             },
 
@@ -147,8 +134,10 @@
             },
 
             destroy: function () {
-                WidgetDataModel.prototype.destroy.call(this);
+                var options = w.dataModelOptions;
                 $interval.cancel(this.intervalPromise);
+                localStorage.removeItem(options.widgetId);
+                WidgetDataModel.prototype.destroy.call(this);
             }
         });
 
@@ -162,28 +151,30 @@
         }
     }])
     pvwidgetModule.factory('pvwidgetOptionsModalConfig', function () {
-        return [
-            {
-                name: "TimeSeriesOptions",
-                modalOptions: {
+         return {
+            TimeSeriesOptions: {
                     templateUrl: 'app/common/widget/timeseries/ChartOptionsModal.html',
-                    controller: 'ModalCtrl', // defined elsewhere,
+                    controller: 'TimeSeriesModalCtrl', // defined elsewhere,
                     animation: true,
                     keyboard: true
-                }
-            },
-            {
-                name: "DataTableOptions",
-                modalOptions: {
+                },
+            DataTableOptions: {
                     templateUrl: 'app/common/widget/datatable/ChartOptionsModal.html',
-                    controller: 'ModalCtrl', // defined elsewhere,
+                    controller: 'DatatableModalCtrl', // defined elsewhere,
+                    animation: true,
+                    keyboard: true
+                },
+            EditHtmlOptions: {
+                    templateUrl: 'app/common/widget/editHtml/ChartOptionsModal.html',
+                    controller: 'EditHtmlModalCtrl', // defined elsewhere,
                     animation: true,
                     keyboard: true
                 }
-            }
-        ];
+         }
     });
-    pvwidgetModule.factory('pvwidgetDefinitions', ['DataModelController', function (dmc) {
+    pvwidgetModule.factory('pvwidgetDefinitions', ['DataModelController','pvwidgetOptionsModalConfig','common', function (dmc, opt, common) {
+
+         var generator = new common.widgetControl();
         return [
           {
               name: 'TimeSeries',
@@ -194,7 +185,8 @@
                 widgetId: null,
                 controllerId: null,
                 seriesId: null
-              }
+              },
+              settingsModalOptions: opt.TimeSeriesOptions
           },
           {
               name: 'DataTable',
@@ -204,7 +196,8 @@
                 widgetId: null,
                 controllerId: null,
                 seriesId: null
-              }
+              },
+              settingsModalOptions: opt.DataTableOptions
           },
           {
               name: 'Html',
@@ -214,7 +207,8 @@
                 widgetId: null,
                 controllerId: null,
                 seriesId: null
-              }
+              },
+              settingsModalOptions: opt.EditHtmlOptions
           }
         ];
     }]);

@@ -27,7 +27,7 @@
         }
 
         function getMessageCount() {
-            console.log("getMessageCount");
+            // console.log("getMessageCount");
             return datacontext.getMessageCount().then(function (data) {
                 return vm.messageCount = data;
             });

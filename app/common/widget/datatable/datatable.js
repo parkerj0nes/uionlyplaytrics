@@ -31,9 +31,9 @@
 
             }
 
-            console.log("storage: %o", JSON.parse(localStorage.getItem("demo_simple")));
+            // console.log("storage: %o", JSON.parse(localStorage.getItem("demo_simple")));
             var store = JSON.parse(localStorage.demo_simple).widgets;
-            console.log(store);
+            // console.log(store);
             for (var key in store) {
                 console.log(store[key]);
             }
