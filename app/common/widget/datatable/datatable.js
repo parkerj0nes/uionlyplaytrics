@@ -50,22 +50,10 @@
         }
 
         function activate() {
-            var promises = [getMessageCount(), getPeople()];
+            var promises = [];
             common.activateController(promises, controllerId)
                 .then(function (data) {
                 });
-        }
-
-        function getMessageCount() {
-            return datacontext.getMessageCount().then(function (data) {
-                return vm.messageCount = data;
-            });
-        }
-
-        function getPeople() {
-            return datacontext.getPeople().then(function (data) {
-                return vm.people = data;
-            });
         }
     }
 })();

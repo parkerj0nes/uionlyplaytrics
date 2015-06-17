@@ -554,3 +554,11 @@ a {
 .html-edit-section iframe {
     width: 100%;
 }
+.timepicker-option{
+    display: inline-table;
+    /*width: 100%;*/
+    margin-left: 5%;
+}
+.datetime-picker{
+    margin: 8% 0;
+}

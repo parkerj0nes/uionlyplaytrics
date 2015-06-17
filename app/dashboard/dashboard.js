@@ -158,10 +158,12 @@
         }
 
         function getMessageCount() {
-            console.log("getMessageCount");
-            return datacontext.getMessageCount().then(function (data) {
-                return vm.messageCount = data;
-            });
+            // console.log("getMessageCount");
+
+            return vm.messageCount = 666;
+            // return datacontext.getMessageCount().then(function (data) {
+            //     return vm.messageCount = data;
+            // });
         }
 
     }

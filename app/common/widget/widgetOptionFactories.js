@@ -10,33 +10,44 @@
 
         TimeSeriesDataModel.prototype = Object.create(WidgetDataModel.prototype);
         TimeSeriesDataModel.prototype.constructor = WidgetDataModel;
+        var dc = datacontext;
+        var module, metric;
+        // var coinFlow = GameEconomy.coinFlow();
+
+        // console.log("playchart scope: %o", scope);
+        //coinFlow.makeCall(attrs).then(coinFlow.success, coinFlow.fail);
 
         angular.extend(TimeSeriesDataModel.prototype, {
             setup: function(widget, scope){
                 WidgetDataModel.prototype.setup.apply(this, arguments);
-                scope.widgetId = widget.dataModelOptions.widgetId;
+                scope.vm.modelOptions = scope.modelOptions = widget.dataModelOptions;
+                module = dc[scope.modelOptions.moduleName](scope);
+                metric = module[scope.modelOptions.metricName]();
             },
             init: function () {
                 var WC = new common.widgetControl();
                 var options = this.dataModelOptions;
                 this.widgetId = (options && options.widgetId != null) ? options.widgetId : WC.generateId();
                 options.widgetId = this.widgetId;
-                this.updateScope(options.widgetId);
+                console.log("data model options time series: %o", options);
+                this.getData(options, metric);
+                this.updateScope(options);
+                console.log("module init: %o", this);
             },
+            getData: function(options, metric, success, fail){
+                var successFn = (success) ? success : metric.successTimeSeries;
+                var failFn = (fail) ? fail : metric.fail;
 
-            startInterval: function () {
+                if(!fail) fail = metric.fail;
+                return metric.makeCall(options.ajaxParams).then(successFn, failFn);                
+            },
+            startInterval: function (timeoutMs) {
                 $interval.cancel(this.intervalPromise);
 
                 this.intervalPromise = $interval(function () {
-                    var value = Math.floor(Math.random() * this.limit);
+                    this.getData(options, metric);
                     this.updateScope(value);
-                }.bind(this), 500);
-            },
-
-            updateLimit: function (limit) {
-                this.dataModelOptions = this.dataModelOptions ? this.dataModelOptions : {};
-                this.dataModelOptions.limit = limit;
-                this.limit = limit;
+                }.bind(this), timeoutMs);
             },
 
             destroy: function () {
@@ -108,6 +119,9 @@
                 options.widgetId = this.widgetId;
                 scope.vm.widgetId = this.widgetId;
                 this.updateScope(options.widgetId);
+
+                // console.log("")
+
                 common.$on('GetDataModelData', function(e, data){
                     common.$broadcast('EditHtml', {
                         w:w,
@@ -116,7 +130,7 @@
                 })
             },
             init: function () {
-                console.log("IN EDIT HTML INTIT!!!!!1 %o", this);
+                // console.log("IN EDIT HTML INTIT!!!!!1 %o", this);
                 var dataModelOptions = this.dataModelOptions;
                 // this.limit = (dataModelOptions && dataModelOptions.limit) ? dataModelOptions.limit : 100;
 
@@ -160,7 +174,7 @@
          return {
             TimeSeriesOptions: {
                     templateUrl: 'app/common/widget/timeseries/ChartOptionsModal.html',
-                    controller: 'TimeSeriesModalCtrl', // defined elsewhere,
+                    controller: 'TimeSeriesModalCtrl as widgetOptions', // defined elsewhere,
                     animation: true,
                     keyboard: true
                 },
@@ -188,13 +202,31 @@
               dataAttrName: 'value',
               dataModelType: dmc.TimeSeriesModel,
               dataModelOptions: {
+                metricName: "coinFlow",
+                moduleName: "GameEconomy",
                 widgetId: null,
-                controllerId: null,
-                seriesId: null
+                refresh: false,
+                refreshRate: 60,
+                ajaxParams: {
+                    game: 'DD2',
+                    region: 0,
+                    interval: 15,
+                    start: moment.utc().subtract(14, 'day').toJSON(),
+                    end: moment.utc().toDate().toJSON(),
+                    chartType: 'column'
+                }
               },
               settingsModalOptions: opt.TimeSeriesOptions,
-              onSettingsClose: function(resultFromModal, widgetModel, dashboardScope) {
+              onSettingsClose: function(result, widget, dashboardScope) {
                 // do something to update widgetModel, like the default implementation:
+                console.log("result: %o", result);
+
+                result.sel
+                //make ajax call or dont and only set refresh rate
+
+                //update scope
+
+                console.log("widget: %o", widget);
                 jQuery.extend(true, widget, result);
               },
               onSettingsDismiss: function(reasonForDismissal, dashboardScope) {

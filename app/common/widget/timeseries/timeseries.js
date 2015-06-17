@@ -127,25 +127,14 @@
         }
 
         function activate() {
-            var promises = [getMessageCount(), getPeople()];
+            var promises = [];
             common.activateController(promises, controllerId)
                 .then(function (data) {
-                    log(data);
+                    // log(data);
                     vm.datacontext = datacontext;
                 });
         }
 
-        function getMessageCount() {
-            return datacontext.getMessageCount().then(function (data) {
-                return vm.messageCount = data;
-            });
-        }
-
-        function getPeople() {
-            return datacontext.getPeople().then(function (data) {
-                return vm.people = data;
-            });
-        }
     }
 })();
 
@@ -161,15 +150,51 @@
         var wc = new common.widgetControl();
         var intervalMultiplier = (60 * 1000);
 
+
+        widgetOptions.modules = GetModules(datacontext);
+        widgetOptions.selectedModule = widgetOptions.modules[0];
+
+        widgetOptions.metrics = widgetOptions.selectedModule.methods;
+        widgetOptions.selectedMetric = widgetOptions.metrics[0];
+
+
         widgetOptions.title = "WE DID IT!";
         widgetOptions.refresh = false;
         widgetOptions.pointInterval = 24 * 3600 * 1000;
         widgetOptions.formats = ['yyyy-MM-ddTHH:mm:ssZ', 'yyyy/MM/dd', 'dd.MM.yyyy', 'shortDate'];
-
         widgetOptions.intervals = common.OptionsEnums.TimeInterval;
         widgetOptions.regions = common.OptionsEnums.AWSRegions;
         widgetOptions.chartTypes = common.OptionsEnums.ChartTypes;
-  
+//        widgetOptions.selectedInterval = widgetOptions.intervals[1];
+        widgetOptions.UpdateInterval = widgetOptions.intervals[1];
+        // widgetOptions.pointInterval = widgetOptions.selectedInterval * intervalMultiplier;
+//        widgetOptions.selectedRegion = widgetOptions.regions[0];
+//        widgetOptions.selectedChartType = ;
+
+        widgetOptions.isMeridian = false;
+        var today = new Date(Date.parse(widgetOptions.formats[1]));
+        widgetOptions.format = widgetOptions.formats[0];
+
+        var from = new Date();
+        from.setHours();
+
+        widgetOptions.start = from;
+        widgetOptions.end = new Date();
+
+        widgetOptions.chartParams = {
+            game: 'DD2',
+            region: widgetOptions.regions[0],
+            interval: widgetOptions.intervals[1],
+            start: (function(x){
+                return x.setHours(0, 0, 0, 0);
+            })(new Date()),
+            end: new Date(),
+            chartType: widgetOptions.chartTypes[5]
+
+        };
+        widgetOptions.dateOptions = {
+            showWeeks: false
+        }
         activate();
         function activate() {
             var promises = [];
@@ -177,10 +202,45 @@
             common.activateController(promises, controllerId)
                 .then(function (data) {
                     var store = wc.getWidgetMeta();
-                    console.log(widgetOptions.intervals);
+                    // console.log(widgetOptions.intervals);
                     // console.log("html modal options activated: %o", store);
 
                 });
+        }
+
+        function GetModules(datacontext){
+            var moduleNames = Object.getOwnPropertyNames(datacontext);
+            console.log("datacontext getOwnPropertyNames: %o", moduleNames);
+            var modules = [];
+            for (var i = moduleNames.length - 1; i >= 0; i--) {
+                var moduleName = moduleNames[i];
+                console.log(moduleNames[i]);
+                if(typeof datacontext[moduleNames[i]]){
+                    var mod = datacontext[moduleNames[i]]();
+                    // console.log(mod);
+                    // console.log(Object.getOwnPropertyNames(mod));
+                }
+                var newModule = {
+                    name: moduleNames[i],
+                    methods: (function (x){
+                        // console.log(x);
+                        return x;
+                    })(Object.getOwnPropertyNames(mod))
+                };
+
+                modules.push(newModule);
+            }
+            console.log("modules from datacontext: %o", modules);            
+            return modules;
+        }
+        widgetOptions.setMetricState = function(module){
+            // console.log(module);
+            var mod = $.grep(widgetOptions.modules, function(m){
+                // console.log("m: %o, module: %o", m, module);
+                return (m.name === module.name);
+            });
+            // console.log(mod);
+            widgetOptions.metrics = mod[0].methods;
         }
 
         widgetOptions.cancel = cancel;
@@ -194,10 +254,9 @@
         }
         widgetOptions.ok = ok;
         function ok () {
-            console.log('calling ok from widget-specific settings controller!');
-            $modalInstance.close($scope.result);
+            // console.log('calling ok from widget-specific settings controller!');
             widgetOptions.series = [];
-            widgetOptions.ChartConfig.series = widgetOptions.series;
+            // widgetOptions.ChartConfig.series = widgetOptions.series;
             widgetOptions.showModal = false;
 
 
@@ -214,22 +273,11 @@
 
             //console.log(eventArgs);
             $scope.$emit("PlaytricsChartUpdate", eventArgs);
+            $modalInstance.close(widgetOptions);
         }
-        widgetOptions.selectedInterval = widgetOptions.intervals[1];
-        widgetOptions.UpdateInterval = widgetOptions.intervals[1];
-        widgetOptions.pointInterval = widgetOptions.selectedInterval * intervalMultiplier;
-        widgetOptions.selectedRegion = widgetOptions.regions[0];
-        widgetOptions.selectedChartType = widgetOptions.chartTypes[5];
 
 
-        var today = new Date(Date.parse(widgetOptions.formats[1]));
-        widgetOptions.format = widgetOptions.formats[0];
 
-        var from = new Date();
-        from.setHours(0, 0, 0, 0);
-
-        widgetOptions.start = from;
-        widgetOptions.end = new Date();
 
 
 

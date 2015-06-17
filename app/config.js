@@ -2,6 +2,7 @@
     'use strict';
 
     var app = angular.module('app');
+    var appDataUrl = "http://stagingmetrics.playverse.com";
 
     // Configure Toastr
     toastr.options.timeOut = 4000;
@@ -20,6 +21,7 @@
     };
 
     var config = {
+        appDataUrl: appDataUrl,
         appErrorPrefix: '[Playtrics Error] ', //Configure the exceptionHandler decorator
         docTitle: 'Playtrics: ',
         events: events,
