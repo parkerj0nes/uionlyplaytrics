@@ -165,11 +165,7 @@
         widgetOptions.intervals = common.OptionsEnums.TimeInterval;
         widgetOptions.regions = common.OptionsEnums.AWSRegions;
         widgetOptions.chartTypes = common.OptionsEnums.ChartTypes;
-//        widgetOptions.selectedInterval = widgetOptions.intervals[1];
         widgetOptions.UpdateInterval = widgetOptions.intervals[1];
-        // widgetOptions.pointInterval = widgetOptions.selectedInterval * intervalMultiplier;
-//        widgetOptions.selectedRegion = widgetOptions.regions[0];
-//        widgetOptions.selectedChartType = ;
 
         widgetOptions.isMeridian = false;
         var today = new Date(Date.parse(widgetOptions.formats[1]));
@@ -181,6 +177,10 @@
         widgetOptions.start = from;
         widgetOptions.end = new Date();
 
+        widgetOptions.widgetParams = {
+            refresh: false,
+            refreshRate: 15
+        }
         widgetOptions.chartParams = {
             game: 'DD2',
             region: widgetOptions.regions[0],
@@ -230,7 +230,7 @@
 
                 modules.push(newModule);
             }
-            console.log("modules from datacontext: %o", modules);            
+            // console.log("modules from datacontext: %o", modules);            
             return modules;
         }
         widgetOptions.setMetricState = function(module){
@@ -245,21 +245,15 @@
 
         widgetOptions.cancel = cancel;
         function cancel () {
-            console.log("cancel");
+            $modalInstance.close();
         }
 
-        var onLoadCallback = function () {
-
-
-        }
         widgetOptions.ok = ok;
         function ok () {
             // console.log('calling ok from widget-specific settings controller!');
             widgetOptions.series = [];
             // widgetOptions.ChartConfig.series = widgetOptions.series;
             widgetOptions.showModal = false;
-
-
 
             var eventArgs = {
                 start:  widgetOptions.start.toJSON(),
