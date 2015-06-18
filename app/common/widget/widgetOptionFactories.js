@@ -21,7 +21,10 @@
             setup: function(widget, scope){
                 WidgetDataModel.prototype.setup.apply(this, arguments);
                 scope.vm.modelOptions = scope.modelOptions = widget.dataModelOptions;
-                module = dc[scope.modelOptions.moduleName](scope);
+                module = dc[scope.modelOptions.module.name](scope);
+                console.log("error here: %o", scope.modelOptions.metricName);
+                console.log(module);
+                console.log(widget);
                 metric = module[scope.modelOptions.metricName]();
             },
             init: function () {
@@ -39,7 +42,16 @@
                 var failFn = (fail) ? fail : metric.fail;
 
                 if(!fail) fail = metric.fail;
-                return metric.makeCall(options.ajaxParams).then(successFn, failFn);                
+                console.log(options.ajaxParams);
+                var params = {
+                    game: options.ajaxParams.game,
+                    region: options.ajaxParams.region.id,
+                    interval: options.ajaxParams.interval.id,
+                    start: options.ajaxParams.start,
+                    end: options.ajaxParams.end,
+                    chartType: options.ajaxParams.chartType.id
+                }
+                return metric.process(params).then(successFn, failFn);                
             },
             startInterval: function (timeoutMs) {
                 $interval.cancel(this.intervalPromise);
@@ -192,42 +204,65 @@
                 }
          }
     });
-    pvwidgetModule.factory('pvwidgetDefinitions', ['DataModelController','pvwidgetOptionsModalConfig','common', function (dmc, opt, common) {
+    pvwidgetModule.factory('pvwidgetDefinitions', ['DataModelController','pvwidgetOptionsModalConfig','common','datacontext', function (dmc, opt, common, datacontext) {
 
-         var generator = new common.widgetControl();
+        var generator = new common.widgetControl();
+        var modules = generator.getModules(datacontext);
+        var metrics = modules[0].methods;
+        var intervals = common.OptionsEnums.TimeInterval;
+        var regions = common.OptionsEnums.AWSRegions;
+        var chartTypes = common.OptionsEnums.ChartTypes;
         return [
           {
               name: 'TimeSeries',
               directive: 'playchart',
-              dataAttrName: 'value',
+              title: 'Premium Credit Inflow/Outflow',
               dataModelType: dmc.TimeSeriesModel,
               dataModelOptions: {
-                metricName: "coinFlow",
-                moduleName: "GameEconomy",
-                widgetId: null,
                 refresh: false,
-                refreshRate: 60,
+                refreshRate: intervals[0],
+                moduleArray: modules,
+                metricArray: metrics,
+                chartTypeArray:chartTypes,
+                regionArray: regions,
+                intervalArray: intervals,
+                module: modules[0],
+                metricName: modules[0].methods[0],
+                datepickerOptions: {
+                    maxDate: moment.utc(),
+                    minDate: false,
+                    startOpened : false,
+                    endOpened: false,
+                    format: common.dateFormats[0],
+                    dateOptions: {
+                        formatYear: 'yy',
+                        startingDay: 1,
+                        showWeeks: false
+                    }
+                },
+                timepickerOptions: {
+                    isMeridian: false
+                },
                 ajaxParams: {
                     game: 'DD2',
-                    region: 0,
-                    interval: 15,
-                    start: moment.utc().subtract(14, 'day').toJSON(),
-                    end: moment.utc().toDate().toJSON(),
-                    chartType: 'column'
+                    region: regions[0],
+                    interval: intervals[1],
+                    start: moment.utc().subtract(14, 'days').toJSON(),
+                    end: moment.utc().toJSON(),
+                    chartType: chartTypes[4]
                 }
               },
               settingsModalOptions: opt.TimeSeriesOptions,
               onSettingsClose: function(result, widget, dashboardScope) {
                 // do something to update widgetModel, like the default implementation:
-                console.log("result: %o", result);
-
-                result.sel
-                //make ajax call or dont and only set refresh rate
-
-                //update scope
-
-                console.log("widget: %o", widget);
+                console.log("result: %o", dashboardScope);
+                // widget.dataModelOptions = result.widget;
                 jQuery.extend(true, widget, result);
+                dashboardScope.saveDashboard();
+                console.log("widget: %o", widget);
+                //scope has been updated *should have been*
+               //make ajax call or dont and only set refresh rate
+
               },
               onSettingsDismiss: function(reasonForDismissal, dashboardScope) {
                 // probably do nothing here, since the user pressed cancel
@@ -245,6 +280,8 @@
               settingsModalOptions: opt.DataTableOptions,
               onSettingsClose: function(result, widget, dashboardScope) {
                 // do something to update widgetModel, like the default implementation:
+                // widget.title = result.dataModel.widgetTitle;
+                // console.log
                 jQuery.extend(true, widget, result);
               },
               onSettingsDismiss: function(reason, scope) {
@@ -268,7 +305,7 @@
               },
               onSettingsDismiss: function(reasonForDismissal, dashboardScope) {
                 // probably do nothing here, since the user pressed cancel
-                console.log("working");
+                // console.log("working");
               }
           }
         ];

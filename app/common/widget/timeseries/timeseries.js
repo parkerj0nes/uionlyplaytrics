@@ -1,4 +1,4 @@
-﻿(function () {
+(function () {
     'use strict';
     var controllerId = 'timeseries';
     angular.module('app').controller(controllerId, ['common', 'datacontext', pvtimeseries]);
@@ -141,60 +141,54 @@
 (function () {
     'use strict';
     var controllerId = 'TimeSeriesModalCtrl';
-    angular.module('app').controller(controllerId, ['$scope','$modalInstance', 'common', 'datacontext', 'EditHtmlDataModel', pvTimeSeriesModalCtrl]);
+    angular.module('app').controller(controllerId, ['$scope','$modalInstance', 'common', 'datacontext','widget', pvTimeSeriesModalCtrl]);
 
-    function pvTimeSeriesModalCtrl($scope,$modalInstance, common, datacontext, datamodel) {
+    function pvTimeSeriesModalCtrl($scope,$modalInstance, common, datacontext, widget) {
         var widgetOptions = this;
         var getLogFn = common.logger.getLogFn;
         var log = getLogFn(controllerId);
         var wc = new common.widgetControl();
         var intervalMultiplier = (60 * 1000);
+        var pointInterval = 24 * 3600 * 1000;
+        var intervals = common.OptionsEnums.TimeInterval;
+        var regions = common.OptionsEnums.AWSRegions;
+        var chartTypes = common.OptionsEnums.ChartTypes;
+        var modules = wc.getModules(datacontext);
+        var metrics = modules[0].methods;
 
+        widgetOptions.widget = widget;
 
-        widgetOptions.modules = GetModules(datacontext);
-        widgetOptions.selectedModule = widgetOptions.modules[0];
+        console.log("startTime: %o", widgetOptions.widget.dataModelOptions.ajaxParams.start);
 
-        widgetOptions.metrics = widgetOptions.selectedModule.methods;
-        widgetOptions.selectedMetric = widgetOptions.metrics[0];
-
-
-        widgetOptions.title = "WE DID IT!";
-        widgetOptions.refresh = false;
-        widgetOptions.pointInterval = 24 * 3600 * 1000;
-        widgetOptions.formats = ['yyyy-MM-ddTHH:mm:ssZ', 'yyyy/MM/dd', 'dd.MM.yyyy', 'shortDate'];
-        widgetOptions.intervals = common.OptionsEnums.TimeInterval;
-        widgetOptions.regions = common.OptionsEnums.AWSRegions;
-        widgetOptions.chartTypes = common.OptionsEnums.ChartTypes;
-        widgetOptions.UpdateInterval = widgetOptions.intervals[1];
-
-        widgetOptions.isMeridian = false;
-        var today = new Date(Date.parse(widgetOptions.formats[1]));
-        widgetOptions.format = widgetOptions.formats[0];
-
-        var from = new Date();
-        from.setHours();
-
-        widgetOptions.start = from;
-        widgetOptions.end = new Date();
-
-        widgetOptions.widgetParams = {
-            refresh: false,
-            refreshRate: 15
-        }
-        widgetOptions.chartParams = {
-            game: 'DD2',
-            region: widgetOptions.regions[0],
-            interval: widgetOptions.intervals[1],
-            start: (function(x){
-                return x.setHours(0, 0, 0, 0);
-            })(new Date()),
-            end: new Date(),
-            chartType: widgetOptions.chartTypes[5]
-
-        };
-        widgetOptions.dateOptions = {
-            showWeeks: false
-        }
+        // widgetOptions.widgetConfig = {
+        //     refresh: widgetOptions.dataModel.refresh,
+        //     refreshRate: intervals[0],
+        //     moduleArray: modules,
+        //     metricArray: metrics,
+        //     chartTypeArray:chartTypes,
+        //     regionArray: regions,
+        //     intervalArray: intervals,
+        //     module: widgetOptions.dataModel.moduleName,
+        //     metric: widgetOptions.dataModel.metricName,
+        //     widgetTitle: widget.title,
+        //     datepickerOptions: {
+        //         maxDate: moment.utc(),
+        //         minDate: false,
+        //         startOpened : false,
+        //         endOpened: false,
+        //         format: common.dateFormats[0],
+        //         dateOptions: {
+        //             formatYear: 'yy',
+        //             startingDay: 1,
+        //             showWeeks: false
+        //         }
+        //     },
+        //     timepickerOptions: {
+        //         isMeridian: false
+        //     },
+        //     ajaxParams: widgetOptions.dataModel.ajaxParams
+        // }
+        // widget.Config = widgetOptions.widgetConfig;
         activate();
         function activate() {
             var promises = [];
@@ -208,89 +202,57 @@
                 });
         }
 
-        function GetModules(datacontext){
-            var moduleNames = Object.getOwnPropertyNames(datacontext);
-            console.log("datacontext getOwnPropertyNames: %o", moduleNames);
-            var modules = [];
-            for (var i = moduleNames.length - 1; i >= 0; i--) {
-                var moduleName = moduleNames[i];
-                console.log(moduleNames[i]);
-                if(typeof datacontext[moduleNames[i]]){
-                    var mod = datacontext[moduleNames[i]]();
-                    // console.log(mod);
-                    // console.log(Object.getOwnPropertyNames(mod));
-                }
-                var newModule = {
-                    name: moduleNames[i],
-                    methods: (function (x){
-                        // console.log(x);
-                        return x;
-                    })(Object.getOwnPropertyNames(mod))
-                };
+        // widgetOptions.GetModules = GetModules;
 
-                modules.push(newModule);
-            }
-            // console.log("modules from datacontext: %o", modules);            
-            return modules;
-        }
+
         widgetOptions.setMetricState = function(module){
-            // console.log(module);
-            var mod = $.grep(widgetOptions.modules, function(m){
-                // console.log("m: %o, module: %o", m, module);
+            console.log(module);
+            var mod = $.grep(modules, function(m){
+                console.log("m: %o, module: %o", m, module);
                 return (m.name === module.name);
             });
             // console.log(mod);
-            widgetOptions.metrics = mod[0].methods;
+            widgetOptions.widget.dataModelOptions.metricArray = mod[0].methods;
         }
 
-        widgetOptions.cancel = cancel;
-        function cancel () {
+        widgetOptions.cancel = function () {
             $modalInstance.close();
         }
 
         widgetOptions.ok = ok;
+        
         function ok () {
             // console.log('calling ok from widget-specific settings controller!');
-            widgetOptions.series = [];
+            console.log($scope);
             // widgetOptions.ChartConfig.series = widgetOptions.series;
-            widgetOptions.showModal = false;
+            // widgetOptions.showModal = false;
 
             var eventArgs = {
-                start:  widgetOptions.start.toJSON(),
-                end: widgetOptions.end.toJSON(),
-                interval: widgetOptions.selectedInterval.interval,
-                region: widgetOptions.selectedRegion.id,
-                chart: widgetOptions.selectedChartType.type,
-                refresh: widgetOptions.refresh,
-                updateInterval: (widgetOptions.refresh) ? (widgetOptions.refresh) : null
+                widgetType: 'TimeSeries',
+                widgetState: widgetOptions.widgetConfig
             }
 
             //console.log(eventArgs);
-            $scope.$emit("PlaytricsChartUpdate", eventArgs);
+            $scope.$emit("PlaytricsWidgetUpdate", eventArgs);
             $modalInstance.close(widgetOptions);
         }
 
+        widgetOptions.today = today;
 
-
-
-
-
-        widgetOptions.today = function (datepickerClass) {
-            if (datepickerClass == null || datepickerClass == 'undefined') return today;
+        function today(datepickerClass) {
+            if (datepickerClass == null || datepickerClass == 'undefined') return Date.UTC(Date.parse(common.dateFormats[1]));
 
             if (datepickerClass == "start-date") {
-                $scope.$parent.start = today;
+                widgetOptions.widgetConfig.playchartParams.start = today;
             }
             if (datepickerClass == "end-date") {
-                $scope.$parent.end = today;
+                widgetOptions.widgetConfig.playchartParams.end = today;
             }
         };
 
-
-        widgetOptions.maxDate = widgetOptions.today();
         widgetOptions.clear = function () {
-            $scope.$parent.start = clear;
-            $scope.$parent.end = clear;
+            widgetOptions.widgetConfig.playchartParams.start = clear;
+            widgetOptions.widgetConfig.playchartParams.end = clear;
         };
 
          //Disable dates after today
@@ -299,10 +261,10 @@
             //return false;
         };
 
-        widgetOptions.toggleMin = function () {
-            $scope.minDate = null; //$scope.minDate ? null : new Date();
-        };
-        widgetOptions.toggleMin();
+        // widgetOptions.toggleMin = function () {
+        //     $scope.minDate = null; //$scope.minDate ? null : new Date();
+        // };
+        // widgetOptions.toggleMin();
 
         widgetOptions.open = function ($event) {
             $event.preventDefault();
@@ -311,33 +273,30 @@
             $.each($event.currentTarget.classList, function (idx, el) {
                 if (this == "start-date") {
                     //console.log("start clicked");
-                    widgetOptions.startOpened = true;
+                    widgetOptions.widgetConfig.datepickerOptions.startOpened = true;
                 }
                 if (this == "end-date") {
                     //console.log("end clicked");
-                    widgetOptions.endOpened = true;
+                    widgetOptions.widgetConfig.datepickerOptions.endOpened = true;
                 }
             });
 
         };
 
-        widgetOptions.dateOptions = {
-            formatYear: 'yy',
-            startingDay: 1
-        };
+
 
         $scope.$parent.openModal = function () {
             $scope.showModal = true;
         };
 
-        var csv = common.CSVconverter.ConvertToCSV;
-
-        widgetOptions.isDLdisabled = true;
+        // widgetOptions.isDLdisabled = true;
         widgetOptions.downloadCSV = function () {
             //console.log($scope.$parent);
+            var csv = common.CSVconverter.ConvertToCSV;
             var results = csv(JSON.stringify('poop'));
 
-            //console.log(results);
+            //TODO: pick up the series and put them into the csv function
+            // this doesn't work right now
 
             var csvContent = "data:text/csv;charset=utf-8," + escape(results);
             var link = document.createElement("a");
@@ -353,9 +312,9 @@
             link.click();
         }
 
-        $scope.$on('ChartSuccess', function (event, args) {
-            widgetOptions.isDLdisabled = false;
-        });
+        // $scope.$on('ChartSuccess', function (event, args) {
+        //     // widgetOptions.isDLdisabled = false;
+        // });
         
 
 

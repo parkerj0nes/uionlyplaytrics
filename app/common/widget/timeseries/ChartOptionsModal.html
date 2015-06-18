@@ -1,13 +1,14 @@
 ﻿<div class="modal-header">
   <button type="button" class="close" data-dismiss="modal" aria-hidden="true" ng-click="widgetOptions.cancel()">&times;</button>
-  <h3>Custom Settings Dialog for <small>{{widgetOptions.title}}</small></h3>
+  <h3>Widget Settings for <small>{{widgetOptions.widget.title}}</small></h3>
 </div>
 <div class="modal-body">
   <form name="form" novalidate class="form-horizontal">
     <div class="form-group row">
       <label for="widgetTitle" class="col-sm-2 control-label">Title</label>
       <div class="col-sm-10">
-        <input type="text" class="form-control" name="widgetTitle" ng-model="widgetOptions.title">
+        <input type="text" class="form-control" name="widgetTitle" 
+        ng-model="widgetOptions.widget.title">
       </div>
     </div>
 
@@ -17,9 +18,9 @@
                 <select 
                 name="module"
                 class="form-control"
-                data-ng-options="module.name for module in widgetOptions.modules" 
-                data-ng-model="widgetOptions.selectedModule"
-                data-ng-change="widgetOptions.setMetricState(widgetOptions.selectedModule)">
+                data-ng-options="module.name for module in widgetOptions.widget.dataModelOptions.moduleArray" 
+                data-ng-model="widgetOptions.widget.dataModelOptions.module"
+                data-ng-change="widgetOptions.setMetricState(widgetOptions.widget.dataModelOptions.module)">
                 </select>           
             </div>
     </div>
@@ -28,8 +29,8 @@
             <div class="col-sm-10">
                 <select 
                 class="form-control"
-                data-ng-options="metric for metric in widgetOptions.metrics" 
-                data-ng-model="widgetOptions.selectedMetric">  
+                data-ng-options="metric for metric in widgetOptions.widget.dataModelOptions.metricArray" 
+                data-ng-model="widgetOptions.widget.dataModelOptions.metricName">  
                 </select>     
             </div>
 
@@ -40,8 +41,8 @@
                 <select 
                 name="chartType"
                 class="form-control"
-                data-ng-options="chartType.friendly for chartType in widgetOptions.chartTypes" 
-                data-ng-model="widgetOptions.chartParams.chartType"></select>
+                data-ng-options="chartType.friendly for chartType in widgetOptions.widget.dataModelOptions.chartTypeArray" 
+                data-ng-model="widgetOptions.widget.dataModelOptions.ajaxParams.chartType"></select>
             </div>
 
     </div>
@@ -51,8 +52,8 @@
                 <select 
                 name="region"
                 class="form-control"
-                data-ng-options="region.friendly for region in widgetOptions.regions" 
-                data-ng-model="widgetOptions.chartParams.region"></select>           
+                data-ng-options="region.friendly for region in widgetOptions.widget.dataModelOptions.regionArray" 
+                data-ng-model="widgetOptions.widget.dataModelOptions.ajaxParams.region"></select>           
             </div>
 
     </div>
@@ -62,8 +63,8 @@
                 <select 
                 name="interval"
                 class="form-control"
-                data-ng-options="interval.friendly for interval in widgetOptions.intervals" 
-                data-ng-model="widgetOptions.chartParams.interval"></select>     
+                data-ng-options="interval.friendly for interval in widgetOptions.widget.dataModelOptions.intervalArray" 
+                data-ng-model="widgetOptions.widget.dataModelOptions.ajaxParams.interval"></select>     
             </div>
 
     </div>
@@ -71,17 +72,17 @@
     <div class="form-group datetime-picker">
         <label for="start" class="col-sm-2 control-label">Start:</label>
         <div class="col-sm-5">
-            <button type="button" class="btn btn-default start-date" ng-click="widgetOptions.open($event)"><i class="glyphicon glyphicon-calendar"></i></button>
+            <!-- <button type="button" class="btn btn-default start-date" ng-click="widgetOptions.open($event)"><i class="glyphicon glyphicon-calendar"></i></button> -->
             <input 
             name="start"
             type="text" 
             class="form-control" 
-            datepicker-popup="{{format}}" 
-            ng-model="widgetOptions.chartParams.start" 
-            is-open="widgetOptions.startOpened" 
-            min-date="widgetOptions.minDate" 
-            max-date="{{maxDate}}" 
-            datepicker-options="widgetOptions.dateOptions" 
+            datepicker-popup="{{widget.dataModelOptions.datepickerOptions.format}}" 
+            ng-model="widgetOptions.widget.dataModelOptions.ajaxParams.start" 
+            is-open="widgetOptions.widget.dataModelOptions.datepickerOptions.startOpened" 
+            min-date="widgetOptions.widget.dataModelOptions.datepickerOptions.minDate" 
+            max-date="widgetOptions.widget.dataModelOptions.datepickerOptions.maxDate" 
+            datepicker-options="widgetOptions.widget.dataModelOptions.datepickerOptions.dateOptions" 
             date-disabled="widgetOptions.disabled(date, mode)" 
             ng-required="true" 
             close-text="Close" />
@@ -90,24 +91,24 @@
             <input 
             timepicker 
             class="timepicker-option"
-            ng-model="widgetOptions.chartParams.start" 
-            show-meridian="widgetOptions.isMeridian" /> 
+            ng-model="widgetOptions.widget.dataModelOptions.ajaxParams.start" 
+            show-meridian="widgetOptions.widget.dataModelOptions.timepickerOptions.isMeridian" /> 
         </div>            
     </div>
     <div class="form-group datetime-picker">
         <label for="end" class="col-sm-2 control-label">End:</label>
         <div class="col-sm-5">
-            <button type="button" class="btn btn-default end-date" ng-click="widgetOptions.open($event)"><i class="glyphicon glyphicon-calendar"></i></button>
+            <!-- <button type="button" class="btn btn-default end-date" ng-click="widgetOptions.open($event)"><i class="glyphicon glyphicon-calendar"></i></button> -->
             <input 
             name="end"
             type="text" 
             class="form-control" 
-            datepicker-popup="{{format}}" 
-            ng-model="widgetOptions.chartParams.end" 
+            datepicker-popup="{{widget.dataModelOptions.datepickerOptions.format}}" 
+            ng-model="widgetOptions.widget.dataModelOptions.ajaxParams.end" 
             is-open="widgetOptions.endOpened" 
             min-date="widgetOptions.minDate" 
-            max-date="{{maxDate}}" 
-            datepicker-options="widgetOptions.dateOptions" 
+            max-date="widgetOptions.widget.dataModelOptions.datepickerOptions.maxDate" 
+            datepicker-options="widgetOptions.widget.dataModelOptions.datepickerOptions.dateOptions" 
             date-disabled="widgetOptions.disabled(date, mode)" 
             ng-required="true" 
             close-text="Close" />
@@ -116,20 +117,20 @@
             <input 
             class="timepicker-option"
             timepicker 
-            ng-model="widgetOptions.chartParams.end" 
-            show-meridian="widgetOptions.isMeridian" /> 
+            ng-model="widgetOptions.widget.dataModelOptions.ajaxParams.end" 
+            show-meridian="widgetOptions.widget.dataModelOptions.timepickerOptions.isMeridian" /> 
         </div>            
     </div>
     <div class="form-group row">
         <label for="refresh" class="col-sm-2 control-label">Refresh:</label>
         <div class="col-sm-1">
-            <input type="checkbox" ng-model="widgetOptions.refresh">
+            <input type="checkbox" ng-model="widgetOptions.widget.dataModelOptions.refresh">
         </div>
         <div class="col-sm-9">
             <select 
             class="form-control"            
-            data-ng-options="interval.friendly for interval in widgetOptions.intervals" 
-            data-ng-model="widgetOptions.chartParams.refreshRate"></select>
+            data-ng-options="interval.friendly for interval in widgetOptions.widget.dataModelOptions.intervalArray" 
+            data-ng-model="widgetOptions.widget.dataModelOptions.refreshRate"></select>
         </div>
     </div>
     <div ng-if="widgetOptions.partialSettingTemplateUrl" ng-include="widgetOptions.partialSettingTemplateUrl"></div>

@@ -167,7 +167,8 @@
             logger: logger, // for accessibility
             textContains: textContains,
             widgetControl: WidgetControl,
-            config: commonConfig.config
+            config: commonConfig.config,
+            dateFormats: ['yyyy-MM-ddTHH:mm:ssZ', 'yyyy/MM/dd', 'dd.MM.yyyy', 'shortDate']
         };
 
         return service;
@@ -222,10 +223,40 @@
 
                 return store;
             }
+            function GetModules(datacontext){
+                 var modules = [];
+                 (_.memoize(function(datacontext){
+                    console.log(datacontext);
+                    var moduleNames = Object.getOwnPropertyNames(datacontext);
+                    console.log("datacontext getOwnPropertyNames: %o", moduleNames);
+                    for (var i = moduleNames.length - 1; i >= 0; i--) {
+                        var moduleName = moduleNames[i];
+                        console.log(moduleNames[i]);
+                        if(typeof datacontext[moduleNames[i]]){
+                            var mod = datacontext[moduleNames[i]]();
+                            // console.log(mod);
+                            // console.log(Object.getOwnPropertyNames(mod));
+                        }
+                        var newModule = {
+                            name: moduleNames[i],
+                            methods: (function (x){
+                                // console.log(x);
+                                return x;
+                            })(Object.getOwnPropertyNames(mod))
+                        };
 
+                        modules.push(newModule);
+                    }
+                    console.log("modules from datacontext: %o", modules);            
+
+                    
+                }))(datacontext);
+                return modules;                
+            }
             return {
                 getWidgetMeta: getWidgetMeta,
-                generateId: generateWidgetId
+                generateId: generateWidgetId,
+                getModules: GetModules
             }
         }
 
