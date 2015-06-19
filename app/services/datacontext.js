@@ -12,9 +12,9 @@
         var errorLog = getLogFn(serviceId, 'error');
         var service = {
             GameEconomy: GameEconomy,
-            GameSessions: GameSessions,
-            HostingInstances: HostingInstances,
-            UserSessions: UserSessions
+            // GameSessions: GameSessions,
+            // HostingInstances: HostingInstances,
+            // UserSessions: UserSessions
         };
 
         return service;

@@ -22,9 +22,6 @@
                 WidgetDataModel.prototype.setup.apply(this, arguments);
                 scope.vm.modelOptions = scope.modelOptions = widget.dataModelOptions;
                 module = dc[scope.modelOptions.module.name](scope);
-                console.log("error here: %o", scope.modelOptions.metricName);
-                console.log(module);
-                console.log(widget);
                 metric = module[scope.modelOptions.metricName]();
             },
             init: function () {
@@ -32,10 +29,9 @@
                 var options = this.dataModelOptions;
                 this.widgetId = (options && options.widgetId != null) ? options.widgetId : WC.generateId();
                 options.widgetId = this.widgetId;
-                console.log("data model options time series: %o", options);
                 this.getData(options, metric);
                 this.updateScope(options);
-                console.log("module init: %o", this);
+                // console.log("module init: %o", scope.vm);
             },
             getData: function(options, metric, success, fail){
                 var successFn = (success) ? success : metric.successTimeSeries;
@@ -212,6 +208,22 @@
         var intervals = common.OptionsEnums.TimeInterval;
         var regions = common.OptionsEnums.AWSRegions;
         var chartTypes = common.OptionsEnums.ChartTypes;
+        var ChartTitle = 'Premium Credit Inflow / Outflow';
+        var Units = 'Credits';
+        var onLoadCallback = function(){}
+        var toolTipFormatter = function () {
+                        var s = '<b>' + moment.utc(this.x).format("MM/DD/YYYY") + '</b>',
+                            sum = 0;
+                        $.each(this.points, function (i, point) {
+                            s += '<br/>' + point.series.name + ': <b>' +
+                                Math.abs(point.y) + ' credits</b>';
+                            sum += point.y;
+                        });
+
+                        //s += '<br/><b>Sum: ' + sum + ' users</b>'
+
+                        return s;
+                    };
         return [
           {
               name: 'TimeSeries',
@@ -228,6 +240,25 @@
                 intervalArray: intervals,
                 module: modules[0],
                 metricName: modules[0].methods[0],
+                chartOptions: {
+                    chart: {
+                        type: chartTypes[4].type,
+                        events: {
+                            load: onLoadCallback
+                        }
+                    },
+                    yAxis: {
+                        title: {
+                            text: Units
+                            }
+                    },
+                    tooltip: {
+                        formatter: toolTipFormatter,
+                    },
+                    title: {
+                        text: ChartTitle
+                    },
+                },
                 datepickerOptions: {
                     maxDate: moment.utc(),
                     minDate: false,

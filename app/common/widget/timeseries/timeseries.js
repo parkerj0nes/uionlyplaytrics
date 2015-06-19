@@ -22,7 +22,7 @@
                 chart: {
                     type: "column",
                     events: {
-                        load: vm.onLoadCallback
+                        // load: vm.onLoadCallback
                     },
                     zoomType: 'x'
                 },
@@ -34,7 +34,7 @@
                 },
                 yAxis: {
                     title: {
-                        text: 'Credits'
+                        // text: 'Credits'
                     },
                     stackLabels: {
                         enabled: false,
@@ -46,20 +46,20 @@
                     alternateGridColor: '#FDFFD5'
                 },
                 tooltip: {
-                    formatter: function () {
-                        var s = '<b>' + moment.utc(this.x).format("MM/DD/YYYY") + '</b>',
-                            sum = 0;
-                        $.each(this.points, function (i, point) {
-                            s += '<br/>' + point.series.name + ': <b>' +
-                                Math.abs(point.y) + ' credits</b>';
-                            sum += point.y;
-                        });
+                    // formatter: function () {
+                    //     var s = '<b>' + moment.utc(this.x).format("MM/DD/YYYY") + '</b>',
+                    //         sum = 0;
+                    //     $.each(this.points, function (i, point) {
+                    //         s += '<br/>' + point.series.name + ': <b>' +
+                    //             Math.abs(point.y) + ' credits</b>';
+                    //         sum += point.y;
+                    //     });
 
-                        //s += '<br/><b>Sum: ' + sum + ' users</b>'
+                    //     //s += '<br/><b>Sum: ' + sum + ' users</b>'
 
-                        return s;
-                    },
-                    shared: true
+                    //     return s;
+                    // },
+                    // shared: true
                 },
                 plotOptions: {
                     area: {
@@ -86,7 +86,7 @@
 
             series: [],
             title: {
-                text: 'Premium Credit Inflow / Outflow'
+                // text: 'Premium Credit Inflow / Outflow'
             },
         }
         var onFailure = function (error) {
@@ -159,36 +159,7 @@
         widgetOptions.widget = widget;
 
         console.log("startTime: %o", widgetOptions.widget.dataModelOptions.ajaxParams.start);
-
-        // widgetOptions.widgetConfig = {
-        //     refresh: widgetOptions.dataModel.refresh,
-        //     refreshRate: intervals[0],
-        //     moduleArray: modules,
-        //     metricArray: metrics,
-        //     chartTypeArray:chartTypes,
-        //     regionArray: regions,
-        //     intervalArray: intervals,
-        //     module: widgetOptions.dataModel.moduleName,
-        //     metric: widgetOptions.dataModel.metricName,
-        //     widgetTitle: widget.title,
-        //     datepickerOptions: {
-        //         maxDate: moment.utc(),
-        //         minDate: false,
-        //         startOpened : false,
-        //         endOpened: false,
-        //         format: common.dateFormats[0],
-        //         dateOptions: {
-        //             formatYear: 'yy',
-        //             startingDay: 1,
-        //             showWeeks: false
-        //         }
-        //     },
-        //     timepickerOptions: {
-        //         isMeridian: false
-        //     },
-        //     ajaxParams: widgetOptions.dataModel.ajaxParams
-        // }
-        // widget.Config = widgetOptions.widgetConfig;
+        console.log("find the ChartConfig! : %o", $scope);
         activate();
         function activate() {
             var promises = [];

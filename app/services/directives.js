@@ -227,8 +227,8 @@
             // console.log("link function");
             // var GameEconomy = datacontext.GameEconomy(scope);
             // var coinFlow = GameEconomy.coinFlow();
-
-            // console.log("playchart scope: %o", scope);
+            jQuery.extend(true,scope.vm.ChartConfig, scope.widgetData.chartOptions);
+            console.log("playchart scope: %o", scope.vm);
             // coinFlow.makeCall(attrs).then(coinFlow.success, coinFlow.fail);
         }
 
