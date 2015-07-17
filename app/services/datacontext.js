@@ -193,7 +193,6 @@
         };
         function UserSessions(scope) {
             var moduleName = "User";
-
             var privacyCompare = function () {
                 var processor = new Processor(moduleName, widgetName);
                 var widgetName = "PrivacyChartData"
@@ -250,11 +249,10 @@
 
             var currentOnline = function (game, region, interval, start, end) {
                 
-                var processor = new Processor(moduleName, widgetName);
                 var widgetName = "currentOn"
-                // var processor = new Processor(moduleName, widgetName);
+                var processor = new Processor(moduleName, widgetName);
                 function onTimeSeriesSuccess(data){
-                    console.log("huzzah!");
+                    console.log("huzzah! %o", data);
                 }
 
                 return {
@@ -274,6 +272,7 @@
                     }
                 }
             }
+
             var DailyActiveSummary = function (game, region, interval, start, end) {
                 
                 var processor = new Processor(moduleName, widgetName);

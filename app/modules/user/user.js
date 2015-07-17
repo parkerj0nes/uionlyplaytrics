@@ -83,9 +83,6 @@
             },{
                 name: "currently online",
                 config: getConfig(vm.PlaytricsModule, "currentOnline", "Current Online")
-            },{
-                name: "installsDAU",
-                config: getConfig(vm.PlaytricsModule, "DailyActiveSummary", "Daily Active Summary")
             }],
             tables: [{}]
 
