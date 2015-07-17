@@ -214,22 +214,124 @@
 
     app.directive('playchart', function (datacontext) {
 
+        var playScope = {
+            source: "@",
+            config: "&config"
+        };
+
         var directive = {
-            restrict: 'A',
-            controller: 'timeseries as vm',
+            restrict: 'E',
+            controller: 'timeseries as ts',
             templateUrl: "app/common/widget/timeseries/playchart.html",
-            link: link
+            link: link,
+            scope: playScope
         };
 
         return directive;
 
         function link(scope, element, attrs) {
             // console.log("link function");
-            // var GameEconomy = datacontext.GameEconomy(scope);
-            // var coinFlow = GameEconomy.coinFlow();
-            jQuery.extend(true,scope.vm.ChartConfig, scope.widgetData.chartOptions);
-            console.log("playchart scope: %o", scope.vm);
-            // coinFlow.makeCall(attrs).then(coinFlow.success, coinFlow.fail);
+            var config = scope.config();
+            console.log("playchart config: %o", config);
+
+            scope.ts.ChartConfig = {
+                options: {
+                    loading: {
+                        style: {
+                            opacity: 1
+                        }
+                    },
+                    chart: {
+                        type: "column",
+                        events: {
+                            // load: ts.onLoadCallback
+                        },
+                        zoomType: 'x'
+                    },
+                    xAxis: {
+                        type: 'datetime',
+                        dateTimeLabelFormats: {
+                            //day: '%e of %b'
+                        }
+                    },
+                    yAxis: {
+                        title: {
+                            // text: 'Credits'
+                        },
+                        stackLabels: {
+                            enabled: false,
+                            style: {
+                                fontWeight: 'bold',
+                                color: (Highcharts.theme && Highcharts.theme.textColor) || 'gray'
+                            }
+                        },
+                        alternateGridColor: '#FDFFD5'
+                    },
+                    tooltip: {
+                        // formatter: function () {
+                        //     var s = '<b>' + moment.utc(this.x).format("MM/DD/YYYY") + '</b>',
+                        //         sum = 0;
+                        //     $.each(this.points, function (i, point) {
+                        //         s += '<br/>' + point.series.name + ': <b>' +
+                        //             Math.abs(point.y) + ' credits</b>';
+                        //         sum += point.y;
+                        //     });
+
+                        //     //s += '<br/><b>Sum: ' + sum + ' users</b>'
+
+                        //     return s;
+                        // },
+                        // shared: true
+                    },
+                    plotOptions: {
+                        area: {
+                            stacking: 'normal',
+                            lineColor: '#666666',
+                            lineWidth: 1,
+                            marker: {
+                                lineWidth: 1,
+                                lineColor: '#666666'
+                            }
+                        },
+                        column: {
+                            stacking: 'normal',
+                            dataLabels: {
+                                enabled: false,
+                                color: (Highcharts.theme && Highcharts.theme.dataLabelsColor) || 'white',
+                                style: {
+                                    textShadow: '0 0 3px black'
+                                }
+                            }
+                        }
+                    }
+                },
+
+                series: [],
+                title: {
+                     text: config.title
+                },
+            }
+
+            function tsSuccess(results){
+
+            }
+            function tsFail(results){}   
+            var dm = new config.dataModelType();         
+            console.log("directives %o", dm.getData);
+            dm.setup({},scope);
+            console.log(dm);
+            dm.getData(config, function(data){
+                jQuery.extend(true, scope.ts.ChartConfig, config.chartOptions);
+                console.log(data);
+                scope.ts.ChartConfig.series.push(data[0]);              
+
+            });                      
+            
+            //get the chart configuration 
+            // ------------------------
+            //if it's a widget there will be a chart config from the default options OR chart options set by the user
+            //jQuery.extend(true,scope.chartConfig, scope.vm.widgetData.chartOptions);
+            // console.log(coinFlow);
         }
 
  
@@ -247,9 +349,83 @@
 
     });
 
+    //need to update these, which were directly pasted over from playtrics
     app.directive('pvChartConfig', function () {
         return {
             controller: function ($scope) { }
         }
     });
+    app.directive('todaytotals', function () {
+        return {
+            restrict: 'E',
+            templateUrl: '/Retention/TodayTotals',
+            replace: true,
+            controller: 'TotalsController',
+            link: function (scope, element, attrs) {
+                console.log(scope);
+                
+            }
+        };
+    })
+
+    app.directive('twoweekretention', function () {
+        return {
+            restrict: 'E',
+            templateUrl: '/Retention/TwoWeekRetention',
+            replace: true,
+            controller: 'RetentionController as vm',
+            link: function (scope, element, attrs) {
+                console.log(scope);
+            }
+        };
+    })
+
+    app.directive('twoweekretentionaverages', function () {
+        return {
+            restrict: 'E',
+            templateUrl: '/Template/SeriesChart',
+            replace: true,
+            controller: 'RetentionController as vm',
+            link: function (scope, element, attrs) {
+                console.log(scope);
+            }
+        };
+    })
+
+    app.directive('installslogins', function () {
+        return {
+            restrict: 'E',
+            templateUrl: '/Template/SeriesChart',
+            replace: true,
+            controller: 'InstallsLoginsController as vm',
+            link: function (scope, element, attrs) {
+                console.log(scope);
+            }
+        };
+    })
+
+
+    app.directive('returnerstable', function () {
+        return {
+            restrict: 'E',
+            templateUrl: '/Retention/ReturnersTable',
+            replace: true,
+            controller: 'ReturnersTableCtrl',
+            link: function (scope, element, attrs) {
+                console.log(scope);
+
+            }
+        };
+    })
+    app.directive('returnerschart', function () {
+        return {
+            restrict: 'E',
+            templateUrl: '/Retention/ReturnersChart',
+            replace: true,
+            controller: 'ReturnersChartCtrl',
+            link: function (scope, element, attrs) {
+                console.log(scope);
+            }
+        };
+    })    
 })();

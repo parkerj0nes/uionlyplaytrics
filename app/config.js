@@ -2,7 +2,7 @@
     'use strict';
 
     var app = angular.module('app');
-    var appDataUrl = "http://stagingmetrics.playverse.com";
+    var appDataUrl = "http://localmonitoring.playverse.com:7552";
 
     // Configure Toastr
     toastr.options.timeOut = 4000;
@@ -50,42 +50,42 @@
     //#endregion
 
     //#region Adding logging to the Broadcast event to see what is going on
-    app.config(function($provide) {
-        $provide.decorator("$rootScope", function($delegate) {
-            var Scope = $delegate.constructor;
-            var broadcast = Scope.prototype.$broadcast;
-            var emit = Scope.prototype.$emit;
+    // app.config(function($provide) {
+    //     $provide.decorator("$rootScope", function($delegate) {
+    //         var Scope = $delegate.constructor;
+    //         var broadcast = Scope.prototype.$broadcast;
+    //         var emit = Scope.prototype.$emit;
 
-            Scope.prototype.$broadcast = function(name, args) {
-                var returnVal = broadcast.apply(this, arguments);
-                var event = {
-                    "event name": name,
-                    "event arguments": args,
-                    "result": returnVal
-                };
+    //         Scope.prototype.$broadcast = function(name, args) {
+    //             var returnVal = broadcast.apply(this, arguments);
+    //             var event = {
+    //                 "event name": name,
+    //                 "event arguments": args,
+    //                 "result": returnVal
+    //             };
 
-                //use this to send off the events as a string to somewhere
-                //var weirdJsonString = JSON.stringify(JSON.parse(angular.toJson(event)), null, 2);
+    //             //use this to send off the events as a string to somewhere
+    //             //var weirdJsonString = JSON.stringify(JSON.parse(angular.toJson(event)), null, 2);
 
-                console.log("[broadcast] : %o", event);
-                return returnVal;
-            };
-            Scope.prototype.$emit = function (name, args) {
-                var returnVal = emit.apply(this, arguments);
-                var event = {
-                    "event name": name,
-                    "event arguments": args,
-                    "result": returnVal
-                };
+    //             console.log("[broadcast] : %o", event);
+    //             return returnVal;
+    //         };
+    //         Scope.prototype.$emit = function (name, args) {
+    //             var returnVal = emit.apply(this, arguments);
+    //             var event = {
+    //                 "event name": name,
+    //                 "event arguments": args,
+    //                 "result": returnVal
+    //             };
 
-                //use this to send off the events as a string to somewhere
-                //var weirdJsonString = JSON.stringify(JSON.parse(angular.toJson(event)), null, 2);
+    //             //use this to send off the events as a string to somewhere
+    //             //var weirdJsonString = JSON.stringify(JSON.parse(angular.toJson(event)), null, 2);
 
-                console.log("[emit] : %o", event);
-                return returnVal;
-            };
-            return $delegate;
-        });
-    })
+    //             console.log("[emit] : %o", event);
+    //             return returnVal;
+    //         };
+    //         return $delegate;
+    //     });
+    // })
     //#endregion
 })();

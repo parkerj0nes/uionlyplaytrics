@@ -231,7 +231,7 @@
                     console.log("datacontext getOwnPropertyNames: %o", moduleNames);
                     for (var i = moduleNames.length - 1; i >= 0; i--) {
                         var moduleName = moduleNames[i];
-                        console.log(moduleNames[i]);
+                        // console.log(moduleNames[i]);
                         if(typeof datacontext[moduleNames[i]]){
                             var mod = datacontext[moduleNames[i]]();
                             // console.log(mod);

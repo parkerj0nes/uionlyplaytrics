@@ -33,7 +33,7 @@
                 url: '/GameSessions',
                 config: {
                     title: 'Game Sessions',
-                    templateUrl: 'app/admin/admin.html',
+                    templateUrl: 'app/modules/game/game.html',
                     settings: {
                         nav: 2,
                         content: '<i class="fa fa-gamepad"></i> Game Sessions'
@@ -44,7 +44,7 @@
                 url: '/UserSessions',
                 config: {
                     title: 'User Sessions',
-                    templateUrl: 'app/admin/admin.html',
+                    templateUrl: 'app/modules/user/user.html',
                     settings: {
                         nav: 3,
                         content: '<i class="fa fa-users"></i> User Sessions'
@@ -55,7 +55,7 @@
                 url: '/HostingInstances',
                 config: {
                     title: 'Hosting Instances',
-                    templateUrl: 'app/admin/admin.html',
+                    templateUrl: 'app/modules/hosting/hosting.html',
                     settings: {
                         nav: 4,
                         content: '<i class="fa  fa-floppy-o"></i> Hosting Instances'
@@ -66,7 +66,7 @@
                 url: '/Economy',
                 config: {
                     title: 'Economy',
-                    templateUrl: 'app/admin/admin.html',
+                    templateUrl: 'app/modules/economy/economy.html',
                     settings: {
                         nav: 5,
                         content: '<i class="fa fa-money"></i> Economy'

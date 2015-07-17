@@ -1,3 +1,4 @@
+
 (function () {
     'use strict';
 
@@ -12,9 +13,9 @@
         var errorLog = getLogFn(serviceId, 'error');
         var service = {
             GameEconomy: GameEconomy,
-            // GameSessions: GameSessions,
-            // HostingInstances: HostingInstances,
-            // UserSessions: UserSessions
+            GameSessions: GameSessions,
+            HostingInstances: HostingInstances,
+            UserSessions: UserSessions
         };
 
         return service;
@@ -83,7 +84,13 @@
                 console.log("parseargs : %o", attrs);
                 var requestString = "?";
                 for(var property in attrs){
-                    requestString = requestString + property + "=" + attrs[property] + "&";
+
+                    if(attrs[property] !== null && typeof attrs[property] === 'object'){
+                        requestString = requestString + property + "=" + attrs[property].id + "&";                                            
+                    }else if(property !== null){
+                        requestString = requestString + property + "=" + attrs[property] + "&";    
+                    }
+                    
                 }
                  // console.log("requestString %s", requestString);
                  return requestString.substring(0, requestString.length - 1);
@@ -109,10 +116,9 @@
             var coinFlow = function () {
                 var widgetName = "GetCoinFlowMacro";
                 var processor = new Processor(moduleName, widgetName);
-                console.log(processor);
                 function onTimeSeriesSuccess(results) {
                     var CAT_PROCESS = false;
-                        // console.log("in onTimeSeriesSuccess function: %o", results);
+                    console.log("in onTimeSeriesSuccess function: %o", results);
                     var SeriesFactory = function (TimeSeries) {
 
                         if (TimeSeries.Type == "Purchase") {
@@ -145,11 +151,11 @@
                             (results.hasOwnProperty("Outflows") && results.Outflows.length > 0)) {
                             $.each(results.Inflows, function (idx, flowData) {
                                 // console.log(SeriesFactory(flowData));
-                                scope.vm.ChartConfig.series.push(SeriesFactory(flowData));
+                                scope.ts.ChartConfig.series.push(SeriesFactory(flowData));
                                 //console.log(flowData);
                             });
                             $.each(results.Outflows, function (idx, flowData) {
-                                scope.vm.ChartConfig.series.push(SeriesFactory(flowData));
+                                scope.ts.ChartConfig.series.push(SeriesFactory(flowData));
                                 //console.log(flowData);
                             });
                         } else {
@@ -186,7 +192,7 @@
             }
         };
         function UserSessions(scope) {
-            var moduleName = "GameSessions";
+            var moduleName = "User";
 
             var privacyCompare = function () {
                 var processor = new Processor(moduleName, widgetName);
@@ -213,14 +219,124 @@
                     }
                 }
             }
+            var installsDAU = function () {
+
+                moduleName = "Retention";
+                var widgetName = "installslogins";
+                var processor = new Processor(moduleName, widgetName);
+                // var processor = new Processor(moduleName, widgetName);
+                function onTimeSeriesSuccess(data){
+                    console.log("huzzah! %o", data);
+                    scope.ts.ChartConfig.series = data.data;
+                }
+
+                return {
+                    process: processor.process,
+                    successTimeSeries: onTimeSeriesSuccess,
+                    successDataTable: function(data){
+                        errorLog("No Data Table data Implemented", {
+                            module: moduleName,
+                            metric: widgetName
+                        })                        
+                    },
+                    fail: function(data){
+                        errorLog("call failed", {
+                            module: moduleName,
+                            metric: widgetName
+                        })
+                    }
+                }
+            }            
+
+            var currentOnline = function (game, region, interval, start, end) {
+                
+                var processor = new Processor(moduleName, widgetName);
+                var widgetName = "currentOn"
+                // var processor = new Processor(moduleName, widgetName);
+                function onTimeSeriesSuccess(data){
+                    console.log("huzzah!");
+                }
+
+                return {
+                    process: processor.process,
+                    successTimeSeries: onTimeSeriesSuccess,
+                    successDataTable: function(data){
+                        errorLog("No Data Table data Implemented", {
+                            module: moduleName,
+                            metric: widgetName
+                        })                        
+                    },
+                    fail: function(data){
+                        errorLog("call failed", {
+                            module: moduleName,
+                            metric: widgetName
+                        })
+                    }
+                }
+            }
+            var DailyActiveSummary = function (game, region, interval, start, end) {
+                
+                var processor = new Processor(moduleName, widgetName);
+                var widgetName = "DailySummary"
+                // var processor = new Processor(moduleName, widgetName);
+                function onTimeSeriesSuccess(data){
+                    console.log("huzzah!");
+                }
+
+                return {
+                    process: processor.process,
+                    successTimeSeries: onTimeSeriesSuccess,
+                    successDataTable: function(data){
+                        errorLog("No Data Table data Implemented", {
+                            module: moduleName,
+                            metric: widgetName
+                        })                        
+                    },
+                    fail: function(data){
+                        errorLog("call failed", {
+                            module: moduleName,
+                            metric: widgetName
+                        })
+                    }
+                }
+            }                
+            var DailyActiveUserByGame = function (game, region, interval, start, end) {
+                
+                var processor = new Processor(moduleName, widgetName);
+                var widgetName = "DailyActiveUserByGame"
+                // var processor = new Processor(moduleName, widgetName);
+                function onTimeSeriesSuccess(data){
+                    console.log("huzzah!");
+                }
+
+                return {
+                    process: processor.process,
+                    successTimeSeries: onTimeSeriesSuccess,
+                    successDataTable: function(data){
+                        errorLog("No Data Table data Implemented", {
+                            module: moduleName,
+                            metric: widgetName
+                        })                        
+                    },
+                    fail: function(data){
+                        errorLog("call failed", {
+                            module: moduleName,
+                            metric: widgetName
+                        })
+                    }
+                }   
+    
+            }
 
             return {
-                privacyCompare: privacyCompare
+                privacyCompare: privacyCompare,
+                dailyinstallslogins: installsDAU,
+                currentOnline: currentOnline
             }
         
         };
         function HostingInstances(scope) {
-            var moduleName = "GameSessions";
+            var moduleName = "HostingInstances";
 
             var privacyCompare = function () {
                 var processor = new Processor(moduleName, widgetName);

@@ -11,7 +11,8 @@
         TimeSeriesDataModel.prototype = Object.create(WidgetDataModel.prototype);
         TimeSeriesDataModel.prototype.constructor = WidgetDataModel;
         var dc = datacontext;
-        var module, metric;
+        TimeSeriesDataModel.prototype.module;
+        TimeSeriesDataModel.prototype.metric;
         // var coinFlow = GameEconomy.coinFlow();
 
         // console.log("playchart scope: %o", scope);
@@ -20,9 +21,16 @@
         angular.extend(TimeSeriesDataModel.prototype, {
             setup: function(widget, scope){
                 WidgetDataModel.prototype.setup.apply(this, arguments);
-                scope.vm.modelOptions = scope.modelOptions = widget.dataModelOptions;
-                module = dc[scope.modelOptions.module.name](scope);
-                metric = module[scope.modelOptions.metricName]();
+                scope.ts.modelOptions = scope.modelOptions = widget.dataModelOptions;
+                if(!scope.modelOptions){
+                    var config = scope.config();
+                    console.log(config);
+                    this.module = dc[config.dataModelOptions.module.name](scope);
+                    this.metric = this.module[config.dataModelOptions.metricName]();                    
+                    return;
+                }
+                this.module = dc[scope.modelOptions.module.name](scope);
+                this.metric = module[scope.modelOptions.metricName]();
             },
             init: function () {
                 var WC = new common.widgetControl();
@@ -33,12 +41,13 @@
                 this.updateScope(options);
                 // console.log("module init: %o", scope.vm);
             },
-            getData: function(options, metric, success, fail){
-                var successFn = (success) ? success : metric.successTimeSeries;
-                var failFn = (fail) ? fail : metric.fail;
-
-                if(!fail) fail = metric.fail;
-                console.log(options.ajaxParams);
+            getData: function(options, success, fail){
+                if(!options.ajaxParams && options.dataModelOptions){
+                    options = options.dataModelOptions;
+                }
+                var successFn = (success) ? success : this.metric.successTimeSeries;
+                var failFn = (fail) ? fail : this.metric.fail;
+                
                 var params = {
                     game: options.ajaxParams.game,
                     region: options.ajaxParams.region.id,
@@ -47,7 +56,7 @@
                     end: options.ajaxParams.end,
                     chartType: options.ajaxParams.chartType.id
                 }
-                return metric.process(params).then(successFn, failFn);                
+                return this.metric.process(params).then(successFn, failFn);                
             },
             startInterval: function (timeoutMs) {
                 $interval.cancel(this.intervalPromise);
@@ -286,7 +295,7 @@
               settingsModalOptions: opt.TimeSeriesOptions,
               onSettingsClose: function(result, widget, dashboardScope) {
                 // do something to update widgetModel, like the default implementation:
-                console.log("result: %o", dashboardScope);
+                // console.log("result: %o", dashboardScope);
                 // widget.dataModelOptions = result.widget;
                 jQuery.extend(true, widget, result);
                 dashboardScope.saveDashboard();
@@ -356,9 +365,17 @@
             return definitions;
         }
 
+        var getConfigFN = function (definition) {
+            if (definition) {
+                return [/*return the config*/]
+            }
+            return ModalConfig;
+        }        
+
         return {
             getWidgetDefinitions: getWidgetDefinitionsFN,
-            defaultWidgets: defaultWidgets
+            defaultWidgets: defaultWidgets,
+            getConfig: getConfigFN
         }
     }]);
 
