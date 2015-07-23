@@ -7,8 +7,8 @@
         var getLogFn = common.logger.getLogFn;
         var log = getLogFn(controllerId);
 
-        var vm = this;
-        vm.widgetMeta = getWidgetMeta();
+        var dt = this;
+        dt.widgetMeta = getWidgetMeta();
 
         activate();
 

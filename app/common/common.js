@@ -144,9 +144,9 @@
     }]);
 
     commonModule.factory('common',
-        ['$q', '$rootScope', '$timeout','$window','$interval', 'commonConfig', 'logger', 'OptionsEnums','CSVconverter', common]);
+        ['$q', '$rootScope', '$timeout','$window','$interval', 'commonConfig', 'logger', 'OptionsEnums','CSVconverter', 'DTOptionsBuilder', 'DTColumnBuilder', common]);
 
-    function common($q, $rootScope, $timeout, $window, $interval, commonConfig, logger, OptionsEnums, CSVconverter) {
+    function common($q, $rootScope, $timeout, $window, $interval, commonConfig, logger, OptionsEnums, CSVconverter, DTOptionsBuilder, DTColumnBuilder) {
         var throttles = {};
 
         var service = {
@@ -190,14 +190,87 @@
         }
 
         function WidgetControl() {
-            //return {
-            //    id: 123,
-            //    seriesData: [],
-            //    game: 'TimeSeries widget',
-            //    module: 'This is a module string',
-            //    series: 'TimeSeries name',
-            //    description: 'Hot Towel Angular is a SPA template for Angular developers.'
-            //};
+            var dataTableTools = {
+                optionsBuilder: DTOptionsBuilder, 
+                columnBuilder : DTColumnBuilder
+            }            
+            function GetModules(datacontext){
+                 var modules = [];
+                 (_.memoize(function(datacontext){
+                    //console.log(datacontext);
+                    var moduleNames = Object.getOwnPropertyNames(datacontext);
+                    //console.log("datacontext getOwnPropertyNames: %o", moduleNames);
+                    for (var i = moduleNames.length - 1; i >= 0; i--) {
+                        var moduleName = moduleNames[i];
+                        var newModule = {
+                            name: moduleNames[i],
+                            methods: {
+                                charts: {},
+                                tables: {}
+                            }
+                        };
+                        if(typeof datacontext[moduleNames[i]]){
+                            var mod = datacontext[moduleNames[i]]();
+                            newModule.methods.charts = datacontext[moduleNames[i]]({}, false);
+                            newModule.methods.tables = datacontext[moduleNames[i]]({}, true);    
+                            // console.log(Object.getOwnPropertyNames(mod));
+                        }
+                        modules.push(newModule);
+                    }
+                    //console.log("modules from datacontext: %o", modules);            
+
+                    
+                }))(datacontext);
+                return modules;                
+            } 
+                       
+            function TimeSeriesConfiguration(moduleName, metricName, chartTitle){
+                var widgetDefs = widgets.getWidgetDefinitions();            
+                var tsdef = widgetDefs[0];
+                var dtdef = widgetDefs[1].dataModelOptions;   
+                
+                this.config = {};
+                $.extend(this.config, tsdef);
+                this.config.dataModelOptions = Object.create(tsdef.dataModelOptions);
+                this.module = getModule(moduleName);
+                this.metric = getMetric(this.module, metricName);
+                this.config.title = chartTitle
+                this.config.dataModelOptions.module = this.module;
+                this.config.dataModelOptions.metricName = this.metric;            
+                console.log(this.metric + " > %o ", this.config);
+                return this.config;
+
+            }
+
+            function getModule(moduleName, datacontext){           
+                var modules = getModules(datacontext);
+                var module = null;
+                for(var i = 0; i < modules.length; ++i) {
+                    if(modules[i].name == moduleName) {
+                        module = modules[i];
+                        break;
+                    }
+                }
+                return module;            
+            }
+
+            function getMetric(moduleName, metricName){
+                var module = null;
+                var metric = null;
+
+                if(typeof moduleName === "object"){
+                    module = moduleName;
+                } else if(typeof moduleName == "string"){
+                    var module = getModule(moduleName);   
+                }
+                for(var i = 0; i < module.methods.length; ++i) {
+                    if(module.methods[i] == metricName) {
+                        metric = module.methods[i];
+                        break;
+                    }
+                }
+                return metric;            
+            }     
             function generateWidgetId() {
                 function s4() {
                     return Math.floor((1 + Math.random()) * 0x10000)
@@ -223,40 +296,14 @@
 
                 return store;
             }
-            function GetModules(datacontext){
-                 var modules = [];
-                 (_.memoize(function(datacontext){
-                    console.log(datacontext);
-                    var moduleNames = Object.getOwnPropertyNames(datacontext);
-                    console.log("datacontext getOwnPropertyNames: %o", moduleNames);
-                    for (var i = moduleNames.length - 1; i >= 0; i--) {
-                        var moduleName = moduleNames[i];
-                        // console.log(moduleNames[i]);
-                        if(typeof datacontext[moduleNames[i]]){
-                            var mod = datacontext[moduleNames[i]]();
-                            // console.log(mod);
-                            // console.log(Object.getOwnPropertyNames(mod));
-                        }
-                        var newModule = {
-                            name: moduleNames[i],
-                            methods: (function (x){
-                                // console.log(x);
-                                return x;
-                            })(Object.getOwnPropertyNames(mod))
-                        };
-
-                        modules.push(newModule);
-                    }
-                    console.log("modules from datacontext: %o", modules);            
-
-                    
-                }))(datacontext);
-                return modules;                
-            }
             return {
                 getWidgetMeta: getWidgetMeta,
                 generateId: generateWidgetId,
-                getModules: GetModules
+                getModules: GetModules,
+                getModule: getModule,
+                getMetric: getMetric,
+                TimeSeriesConfig: TimeSeriesConfiguration,
+                dataTableTools: dataTableTools
             }
         }
 

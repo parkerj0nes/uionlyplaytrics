@@ -24,12 +24,11 @@
                 scope.ts.modelOptions = scope.modelOptions = widget.dataModelOptions;
                 if(!scope.modelOptions){
                     var config = scope.config();
-                    console.log(config);
-                    this.module = dc[config.dataModelOptions.module.name](scope);
+                    this.module = dc[config.dataModelOptions.module.name](scope, false);
                     this.metric = this.module[config.dataModelOptions.metricName]();                    
                     return;
                 }
-                this.module = dc[scope.modelOptions.module.name](scope);
+                this.module = dc[scope.modelOptions.module.name](scope, false);
                 this.metric = module[scope.modelOptions.metricName]();
             },
             init: function () {
@@ -56,7 +55,8 @@
                     end: options.ajaxParams.end,
                     chartType: options.ajaxParams.chartType.id
                 }
-                return this.metric.process(params).then(successFn, failFn);                
+                var processor = this.metric.process;
+                return processor.process(params).then(successFn, failFn);                
             },
             startInterval: function (timeoutMs) {
                 $interval.cancel(this.intervalPromise);
@@ -84,17 +84,66 @@
 
         DataTableDataModel.prototype = Object.create(WidgetDataModel.prototype);
         DataTableDataModel.prototype.constructor = WidgetDataModel;
+        var dc = datacontext;
+        DataTableDataModel.prototype.module;
+        DataTableDataModel.prototype.metric;
 
         angular.extend(DataTableDataModel.prototype, {
+            setup: function(widget, scope){
+                WidgetDataModel.prototype.setup.apply(this, arguments);
+                function isEmptyObject(obj) {
+                  for(var prop in obj) {
+                    if (Object.prototype.hasOwnProperty.call(obj, prop)) {
+                      return false;
+                    }
+                  }
+                  return true;
+                }                
+                if(!isEmptyObject(widget)){
+                    scope.dt.modelOptions = scope.modelOptions = widget.dataModelOptions;
+                }
+                
+                if(!scope.modelOptions){
+                    var config = scope.config();
+                    //console.log("%o <> %o", options, columns);
+                    this.module = dc[config.dataModelOptions.module.name](scope, true);
+                    this.metric = this.module[config.dataModelOptions.metricName]();                    
+                    return;
+                }
+                this.module = dc[scope.modelOptions.module.name](scope);
+                this.metric = module[scope.modelOptions.metricName]();
+            },            
             init: function () {
-                console.log("in DATATABLE INTI!!!!")
-                var dataModelOptions = this.dataModelOptions;
-                //this.limit = (dataModelOptions && dataModelOptions.limit) ? dataModelOptions.limit : 100;
-
-                // this.updateScope('-');
-                // this.startInterval();
+                var WC = new common.widgetControl();
+                var options = this.dataModelOptions;
+                this.widgetId = (options && options.widgetId != null) ? options.widgetId : WC.generateId();
+                options.widgetId = this.widgetId;
+                this.getData(options, metric);
+                this.updateScope(options);
             },
-
+            getData: function(options, success, fail){
+                var params;                
+                if(!options.ajaxParams && options.dataModelOptions){
+                    options = options.dataModelOptions;
+                }
+                // var successFn = (success) ? success : this.metric.successDataTable;
+                var failFn = (fail) ? fail : this.metric.fail;
+                
+                if(options.ajaxParams){
+                    params = {
+                        game: options.ajaxParams.game,
+                        region: options.ajaxParams.region.id,
+                        interval: options.ajaxParams.interval.id,
+                        start: options.ajaxParams.start,
+                        end: options.ajaxParams.end,
+                        chartType: options.ajaxParams.chartType.id
+                    }                    
+                } else{
+                    params = {}
+                }
+                var processor = this.metric.process;
+                return processor.process(params);               
+            },
             startInterval: function () {
                 $interval.cancel(this.intervalPromise);
 
@@ -315,7 +364,12 @@
               dataModelOptions: {
                 widgetId: null,
                 controllerId: null,
-                seriesId: null
+                seriesId: null,
+                optionsBuilder: (function(x){
+                    console.log("waaaaaaaaaaa : %o", x);
+                    return Object.create(x);
+                })(common.widgetControl().dataTableTools.optionsBuilder),
+                columnBuilder: common.widgetControl().dataTableTools.columnBuilder
               },
               settingsModalOptions: opt.DataTableOptions,
               onSettingsClose: function(result, widget, dashboardScope) {

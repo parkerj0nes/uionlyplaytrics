@@ -1,4 +1,62 @@
-﻿(function() {
+﻿    var Day = function (date, newUsers, logins, percentArray) {
+        var formatDate = function (datestring) {
+            var splitDate = datestring.split(" ");
+            return splitDate[0];
+        }
+        var formatPercents = function (percentArray) {
+            // console.log(percentArray);
+            var l = percentArray.length;
+            for (var i = 0; i <= l; i++)
+            {
+                percentArray[i] = Math.floor(percentArray[i]);
+                if (percentArray[i] == -1) {
+                    percentArray[i] = '-';
+                } else if (percentArray[i] == 0) {
+                    percentArray[i] = "N/A"
+                }
+                else {
+                    percentArray[i] = percentArray[i] + '%';
+                }
+            }
+            //this is a big WTF fix this later
+            percentArray.pop();
+            return percentArray;
+        }
+        var ChartProcessedEvent = new CustomEvent(
+            "RetentionProcessed",
+            {
+                detail: {
+                    message: "Retention Chart Finished",
+                    time: new Date(),
+                },
+                bubbles: true,
+                cancelable: true
+            }
+        );
+
+        this.date = formatDate(date); //(typeof date === "undefined") ? new Date() : formatDate(date);
+        this.newUsers = (typeof newUsers === "undefined") ? 0 : newUsers;
+        this.logins = (typeof logins === "undefined") ? 0 : logins;
+        this.twoWeeks = (typeof percentArray === "undefined") ? [] : formatPercents(percentArray);
+};
+
+var getDays = function (res) {
+    var DayArray = [];
+    $.each(res, function (idx) {
+        if(!this.date || this.date == "undefined"){
+            console.log(this);
+        }else{
+            console.log(this);
+        }
+        var d = new Day(this.date, this.installsOnThisDay, this.loginsOnThisDay, this.days);
+
+        DayArray.push(d);
+    });
+
+    return DayArray;
+};
+
+(function() {
     'use strict';
 
     var app = angular.module('app');
@@ -229,9 +287,17 @@
 
         return directive;
 
+        function tsSuccess(results){
+
+        }
+        function tsFail(results){
+
+        }   
+        
         function link(scope, element, attrs) {
             // console.log("link function");
             var config = scope.config();
+
             console.log("playchart config: %o", config);
 
             scope.ts.ChartConfig = {
@@ -254,7 +320,7 @@
                             //day: '%e of %b'
                         }
                     },
-                    yAxis: {
+                    yAxis: [{
                         title: {
                             // text: 'Credits'
                         },
@@ -266,7 +332,7 @@
                             }
                         },
                         alternateGridColor: '#FDFFD5'
-                    },
+                    }],
                     tooltip: {
                         // formatter: function () {
                         //     var s = '<b>' + moment.utc(this.x).format("MM/DD/YYYY") + '</b>',
@@ -312,19 +378,37 @@
                 },
             }
 
-            function tsSuccess(results){
 
-            }
-            function tsFail(results){}   
             var dm = new config.dataModelType();         
-            console.log("directives %o", dm.getData);
+            
             dm.setup({},scope);
-            console.log(dm);
-            dm.getData(config, function(data){
-                jQuery.extend(true, scope.ts.ChartConfig, config.chartOptions);
-                console.log(data);
-                scope.ts.ChartConfig.series.push(data[0]);              
 
+            console.log(dm);
+            dm.getData(config, function(Response){
+                jQuery.extend(true, scope.ts.ChartConfig, config.chartOptions);
+                console.log(Response.data);
+                Response.data.forEach(function(datum){
+                    if(typeof datum === 'object' && datum.data){
+                        for(var prop in datum){
+                            if(prop === 'yAxis'){
+                                scope.ts.ChartConfig.options.yAxis.push({
+                                    title: {
+                                        text: datum.name
+                                    },
+                                    stackLabels: {
+                                        enabled: false,
+                                        style: {
+                                            fontWeight: 'bold',
+                                            color: (Highcharts.theme && Highcharts.theme.textColor) || 'gray'
+                                        }
+                                    },
+                                    alternateGridColor: '#FDFFD5'
+                                })
+                            }
+                        }
+                        scope.ts.ChartConfig.series.push(datum);                        
+                    }
+                })
             });                      
             
             //get the chart configuration 
@@ -337,15 +421,154 @@
  
     });
 
-    app.directive('playtable', function (datacontext) {
-        var directive = {
-            restrict: 'A',
-            controller: 'datatable as vm',
-            templateUrl: "app/common/widget/datatable/playtable.html",
-            link: link
+    app.directive('playtable', function (datacontext, $q) {
+        var playScope = {
+            source: "@",
+            config: "&config"
         };
+
+        var directive = {
+            restrict: 'E',
+            controller: 'datatable as dt',
+            templateUrl: "app/common/widget/datatable/playtable.html",
+            link: link,
+            scope: playScope
+        };
+
         return directive;
-        function link(scope, element, attrs) { }
+
+        function link(scope, element, attrs) { 
+
+            var config = scope.dt.config = scope.config();
+            console.log("config I need %o", config)                 
+            scope.dt.tableInfo = {};
+            scope.dt.tableInfo.id = config.tableId;        
+            var dm = new config.dataModelType();         
+            var dtRetentionArray = [];
+            dm.setup({},scope);
+          
+            scope.dt.isRefresh = true;
+            scope.dt.datarefreshRate = 1000 * 60 * 60 * 12;
+            scope.dt.toggleRefresh = function (val) {
+                if (!val) {
+                    clearInterval(vm.dataRefreshInterval);
+                    $(".timerstatus").html("<span style='color: red;'>Data Refresh off</span>");
+                    setTimeout(function () {
+                        $(".timerstatus").html("");
+                    }, 5 * 1000)
+                    return;
+                }
+                scope.dt.dataRefreshInterval = setInterval(scope.dt.reloadData, scope.dt.datarefreshRate);
+                $(".timerstatus").html("<span style='color: green;'>Table will refresh every {0} hours</span>".format(scope.dt.datarefreshRate / (1000* 60 * 60)));
+                setTimeout(function () {
+                    $(".timerstatus").html("");
+                }, 5 * 1000)
+            }
+            scope.dt.reloadData = function () {
+                console.log("wat");
+                var resetPaging = true;
+                dtRetentionArray = [];
+                scope.dt.dtInstance.reloadData(callback, resetPaging);
+            };
+
+            scope.dt.dtDataDeffered = $q.defer();
+
+            scope.dt.data = mainRetentionPromise();
+            
+            scope.dt.data.then(function(R){
+            var columns = [];
+                var dtRow = {
+                    RecordDate: "",
+                    installs: "",
+                    day1: "-",
+                    day2: "-",
+                    day3: "-",
+                    day4: "-",
+                    day5: "-",
+                    day6: "-",
+                    day7: "-",
+                    day8: "-",
+                    day9: "-",
+                    day10: "-",
+                    day11: "-",
+                    day12: "-",
+                    day13: "-",
+                    day14: "-",
+                };
+                for(var property in dtRow){
+                    var colObj = {};
+                    colObj.title = property.toUpperCase();
+                    colObj.data = property;
+                    colObj.class = "center";
+                    columns.push(colObj);
+                }    		
+    			$('#' + scope.dt.tableInfo.id).dataTable( {
+    				"data": R.data,
+    				"columns": columns
+    			} );                   
+            })
+              
+            scope.dt.dataRefreshInterval = setInterval(scope.dt.reloadData, scope.dt.datarefreshRate);
+
+
+   
+
+            function mainRetentionPromise() {
+                var deferred = $q.defer();
+                var Rows;
+                dm.getData(config).then(function (Response) {
+                    var res = Response.data;
+                    console.log("OMG THE DATA %o", res);
+                    Rows = [];
+                    Rows = getDays(res);
+                    var percents = {};
+                    $.each(Rows, function (idx, el) {
+                        var dtRow = {
+                            RecordDate: el.date,
+                            installs: el.newUsers,
+                            logins: el.logins,
+                            day1: "-",
+                            day2: "-",
+                            day3: "-",
+                            day4: "-",
+                            day5: "-",
+                            day6: "-",
+                            day7: "-",
+                            day8: "-",
+                            day9: "-",
+                            day10: "-",
+                            day11: "-",
+                            day12: "-",
+                            day13: "-",
+                            day14: "-",
+                        };
+
+                        $.each(el.twoWeeks, function (idx, perc) {
+                            dtRow["day" + (idx + 1).toString()] = perc;
+                            if (perc != "N/A" || "-") {
+                                perc.replace("%", "");
+                                //console.log(perc);
+                                if (!percents["day" + (idx + 1).toString()]) {
+                                    percents["day" + (idx + 1).toString()] = 0
+                                }
+                                perc = parseInt(perc);
+                                percents["day" + (idx + 1).toString()] = parseInt(perc);
+                                percents["day" + (idx + 1).toString()] = ((percents["day" + (idx + 1).toString()] + perc) / Rows.length);
+                            }
+
+                        });
+                        //console.log(percents);
+                        dtRetentionArray.push(dtRow);
+                    });
+                    console.log("DT array: %o ", dtRetentionArray);
+                    Response.data = dtRetentionArray
+                    deferred.resolve(Response);
+                    //$("#two-week-retention").trigger("RetentionProcessed");
+
+                });                
+                return deferred.promise;
+            }
+        }
 
     });
 
@@ -354,78 +577,5 @@
         return {
             controller: function ($scope) { }
         }
-    });
-    app.directive('todaytotals', function () {
-        return {
-            restrict: 'E',
-            templateUrl: '/Retention/TodayTotals',
-            replace: true,
-            controller: 'TotalsController',
-            link: function (scope, element, attrs) {
-                console.log(scope);
-                
-            }
-        };
-    })
-
-    app.directive('twoweekretention', function () {
-        return {
-            restrict: 'E',
-            templateUrl: '/Retention/TwoWeekRetention',
-            replace: true,
-            controller: 'RetentionController as vm',
-            link: function (scope, element, attrs) {
-                console.log(scope);
-            }
-        };
-    })
-
-    app.directive('twoweekretentionaverages', function () {
-        return {
-            restrict: 'E',
-            templateUrl: '/Template/SeriesChart',
-            replace: true,
-            controller: 'RetentionController as vm',
-            link: function (scope, element, attrs) {
-                console.log(scope);
-            }
-        };
-    })
-
-    app.directive('installslogins', function () {
-        return {
-            restrict: 'E',
-            templateUrl: '/Template/SeriesChart',
-            replace: true,
-            controller: 'InstallsLoginsController as vm',
-            link: function (scope, element, attrs) {
-                console.log(scope);
-            }
-        };
-    })
-
-
-    app.directive('returnerstable', function () {
-        return {
-            restrict: 'E',
-            templateUrl: '/Retention/ReturnersTable',
-            replace: true,
-            controller: 'ReturnersTableCtrl',
-            link: function (scope, element, attrs) {
-                console.log(scope);
-
-            }
-        };
-    })
-    app.directive('returnerschart', function () {
-        return {
-            restrict: 'E',
-            templateUrl: '/Retention/ReturnersChart',
-            replace: true,
-            controller: 'ReturnersChartCtrl',
-            link: function (scope, element, attrs) {
-                console.log(scope);
-            }
-        };
-    })    
+    });   
 })();

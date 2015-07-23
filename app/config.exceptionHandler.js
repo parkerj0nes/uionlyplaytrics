@@ -1,5 +1,29 @@
 ﻿// Include in index.html so that app level exceptions are handled.
 // Exclude from testRunner.html which should run exactly what it wants to run
+function NoModuleFoundError(message) {
+    this.name = "NoModuleFoundError";
+    this.message = (message || "");
+}
+NoModuleFoundError.prototype = Error.prototype;
+
+function ParameterError(message) {
+    this.name = "ParameterError";
+    this.message = (message || "");
+}
+ParameterError.prototype = Error.prototype;
+
+function NoSuchChartError(message) {
+    this.name = "NoModuleFoundError";
+    this.message = (message || "");
+}
+NoSuchChartError.prototype = Error.prototype;
+
+function NoModuleFoundError(message) {
+    this.name = "NoModuleFoundError";
+    this.message = (message || "");
+}
+NoModuleFoundError.prototype = Error.prototype;
+
 (function () {
     'use strict';
     

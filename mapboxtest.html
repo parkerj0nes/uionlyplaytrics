@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset=utf-8 />
+<title>Timeline with scaled markers</title>
+<meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+<script src='https://api.tiles.mapbox.com/mapbox.js/v2.2.1/mapbox.js'></script>
+<link href='https://api.tiles.mapbox.com/mapbox.js/v2.2.1/mapbox.css' rel='stylesheet' />
+<style>
+  	body { margin:0; padding:0; }
+  	#map { position:absolute; top:0; bottom:0; width:100%; }
+	.ui-brush {
+	  background:#f8f8f8;
+	  position:absolute;
+	  bottom:0;right:0;left:0;
+	  height:100px;
+	  }
+	.brush .extent {
+	  stroke:#fff;
+	  fill-opacity:0.125;
+	  shape-rendering:crispEdges;
+	  }
+	  .map-container{
+	  	position: relative;
+	  	width: 80%;
+	  	margin: 0 auto;
+	  	height: 500px;
+	  }
+     .axis {
+        font-size: 10px;
+      }
+      .axis path {
+        fill: none;
+        stroke: #000000;
+      }
+      .axis .tick line {
+        stroke: #000;
+      }
+        
+        .states {
+            fill: #ccc;
+            stroke: #fff;
+        }	  
+</style>
+</head>
+<body>
+<!-- This example requires d3 for AJAX and the brush,
+     though you can bring your own library. -->
+<script src='https://cdnjs.cloudflare.com/ajax/libs/d3/3.4.6/d3.min.js' charset="utf-8"></script>
+
+<div class="map-container">
+	<div id='map' class='dark'></div>
+	<div id='brush' class='ui-brush'></div>
+</div>
+
+<script>
+L.mapbox.accessToken = 'pk.eyJ1IjoicGFyYWxsYXhpc2pvbmVzIiwiYSI6Ijg5YjI1Y2JjOTZlODhlM2E5OTMyZTZiMzUxZDIyMDVjIn0.OXTkPMX948uKjsXvS70ACQ';
+var map = L.mapbox.map('map', 'parallaxisjones.mo8hik4f')
+    .setView([0, 0], 1);
+
+var credits = L.control.attribution({
+  prefix: '<a href="http://http://localmonitoring.playverse.com:7552/User/GetLoginDensityMap?game=DD2&region=0&interval=3&start=2015-07-03T23:20:46.380Z&end=2015-07-17T23:20:46.381Z&chartType=4">Data from Playverse</a>'
+}).addTo(map);
+
+// Create a new layer with a special pointToLayer function
+// that'll generate scaled points.
+var loginsLayer = L.geoJson(null, { pointToLayer: scaledPoint })
+    .addTo(map);
+
+function pointColor(feature) {
+    return feature.properties.count > 5 ? '#f55' : '#a00';
+}
+
+function pointRadius(feature) {
+    return  feature.properties.count > 5 ? (feature.properties.count / 2) : feature.properties.count;
+}
+
+function scaledPoint(feature, latlng) {
+    console.log(feature);
+    return L.circleMarker(latlng, {
+        radius: pointRadius(feature),
+        fillColor: pointColor(feature),
+        fillOpacity: 0.7,
+        weight: 0.5,
+        color: '#fff'
+    }).bindPopup(
+        '<h2>' + feature.properties.description + '</h2>' +
+        '<h3>' + new Date(feature.properties.timestamp) + '</h3>' +
+        feature.properties.count + ' count');
+}
+
+// Request our data and add it to the loginsLayer.
+d3.json('http://localmonitoring.playverse.com:7552/User/GetLoginDensityMap?game=DD2&region=0&interval=3&start=2015-07-15T23:20:46.380Z&end=2015-07-17T23:20:46.381Z&chartType=4', function(err, data) {
+    console.log(data);
+    loginsLayer.addData(data);
+    setBrush(data);
+});
+
+function setBrush(data) {
+    var container = d3.select('#brush'),
+        width = container.node().offsetWidth,
+        margin = {top: 0, right: 0, bottom: 0, left: 0},
+        height = 100;
+
+    var timeExtent = d3.extent(data.features, function(d) {
+        return new Date(d.properties.timestamp);
+    });
+
+    var svg = container.append('svg')
+        .attr('width', width + margin.left + margin.right)
+        .attr('height', height + margin.top + margin.bottom);
+
+    var context = svg.append('g')
+        .attr('class', 'context')
+        .attr('transform', 'translate(' +
+            margin.left + ',' +
+            margin.top + ')');
+
+    var x = d3.time.scale()
+        .range([0, width])
+        .domain(timeExtent);
+
+    var brush = d3.svg.brush()
+        .x(x)
+        .on('brushend', brushend);
+
+ 	var axis = d3.svg.axis()
+    .scale(x)
+    .orient("top")
+    .ticks(5)
+    .tickFormat(d3.time.format("%c"))
+
+    var agroup = context.append("g")
+    agroup.attr("transform", "translate(" + [0, height] + ")")
+    agroup.attr("height", height + 7)
+    agroup.attr("class", "axis-lable")    
+    axis(agroup)
+    agroup.selectAll("path")
+      .style({ fill: "none", stroke: "#000"})
+    agroup.selectAll("line")
+      .style({ stroke: "#000", marginLeft: '50', marginRight: '50'})
+
+
+    context.selectAll('circle.quake')
+        .data(data.features)
+        .enter()
+        .append('circle')
+        .attr('transform', function(d) {
+            return 'translate(' + [x(new Date(d.properties.timestamp)), height / 2] + ')';
+        })
+        .attr('r', pointRadius)
+        .attr('opacity', 0.5)
+        .attr('stroke', '#fff')
+        .attr('stroke-width', 0.5)
+        .attr('fill', pointColor);
+
+    context.append('g')
+        .attr('class', 'x brush')
+        .call(brush)
+        .selectAll('rect')
+        .attr('y', -6)
+        .attr('height', height);
+
+    function brushend() {
+        var filter;
+            // If the user has selected no brush area, share everything.
+        if (brush.empty()) {
+            filter = function() { return true; }
+        } else {
+            // Otherwise, restrict features to only things in the brush extent.
+            filter = function(feature) {
+                return feature.properties.timestamp > +brush.extent()[0] &&
+                    feature.properties.timestamp < (+brush.extent()[1]);
+            };
+        }
+        var filtered = data.features.filter(filter);
+        loginsLayer.clearLayers()
+            .addData(filtered);
+    }
+
+	function customTickFunction(t0, t1, dt)
+	{
+	    
+	    var labelSize = 30; // largest label is 23 pixels ("May")
+	    var maxTotalLabels = Math.floor(width / labelSize);
+	    
+	    function step(date, offset)
+	    {
+	        date.setMonth(date.getMonth() + offset);
+	    }
+	    
+	    var time = d3.time.month.ceil(t0), times = [];
+	    
+	    while (time < t1) times.push(new Date(+time)), step(time, 1);
+	    
+	    if(times.length > maxTotalLabels){
+	        times = _.filter(times, function(d){
+	            return (d.getMonth() + 1) % 2;
+	        });	    	
+	    }
+	    console.log(time);
+	    return times;
+	}
+	function timeFormat(formats) {
+	  return function(date) {
+	    var i = formats.length - 1, f = formats[i];
+	    while (!f[1](date)) f = formats[--i];
+	    return f[0](date);
+	  };
+	}
+	var customTimeFormat = timeFormat([
+	    [d3.time.format("%Y"), function() { return true; }],
+	    [d3.time.format("%b"), function(d) { return d.getDate(); }],
+	    [function(){return "";}, function(d) { return d.getDate() != 1; }]
+	]);
+
+}
+
+
+</script>
+</body>
+</html>
