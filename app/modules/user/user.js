@@ -4,7 +4,7 @@
     angular.module('app').controller(controllerId, ['common','datacontext', 'widgetinterface', usersessions]);
         
 
-    function usersessions(common, datacontext, widgets, DTOptionsBuilder, DTColumnBuilder) {
+    function usersessions(common, datacontext, widgets) {
         var getLogFn = common.logger.getLogFn;
         var log = getLogFn(controllerId);
                 
@@ -30,7 +30,7 @@
             this.config.title = chartTitle
             this.config.dataModelOptions.module = this.module;
             this.config.dataModelOptions.metricName = this.metric;            
-            console.log(this.metric + " > %o ", this.config);
+            //console.log(this.metric + " > %o ", this.config);
             return this.config;
 
         }
@@ -46,10 +46,7 @@
             var dtdef = widgetDefs[1];   
             this.config = {};
             $.extend(this.config, dtdef); //try Object.create(tsde)f
-            this.config.dataModelOptions = Object.create(dtdef.dataModelOptions);
-            var columnBuilder = this.config.dataModelOptions.columnBuilder;
-            this.config.columnBuilder = this.config.dataModelOptions.columnBuilder;
-            this.config.optionsBuilder = this.config.dataModelOptions.optionsBuilder;            
+            this.config.dataModelOptions = Object.create(dtdef.dataModelOptions);        
             this.module = getModule(moduleName);
             this.metric = getMetric(this.module, metricName);
             this.config.title = chartTitle;
@@ -83,10 +80,10 @@
 
             if(typeof moduleName === "object"){
                 module = moduleName;
-                console.log(module);                
+                //console.log(module);                
             } else if(typeof moduleName == "string"){
                 var module = getModule(moduleName);  
-                console.log(module);
+                //console.log(module);
             }
             searchObj(module);
             function searchObj( obj ){
@@ -98,7 +95,7 @@
                     }
 
                     if( key === metricName ){
-                        console.log( 'property=' + key + ' value=' + obj[key]);
+                        //console.log( 'property=' + key + ' value=' + obj[key]);
                         metric = key;
                         break;                        
                     }
@@ -116,11 +113,11 @@
             },
             {
                 name: "Average Weekly 14 Day Retention",
-                config: new TimeSeriesConfiguration(vm.PlaytricsModule, "reportAverage", "Users Online By Region")
+                config: new TimeSeriesConfiguration(vm.PlaytricsModule, "RetentionAverageTimeseries", "Average Weekly 14 Day Retention")
             },
             {
                 name: "NURR CURR RURR",
-                config: new TimeSeriesConfiguration(vm.PlaytricsModule, "usersOnlineByRegion", "Users Online By Region")
+                config: new TimeSeriesConfiguration(vm.PlaytricsModule, "ReturnerTimeSeries", "NURR CURR RURR")
             },            
             {
                 name: "Currently Online",
@@ -136,7 +133,7 @@
             },{
 
                 name: "NURR CURR RURR",
-                config: new DataTablesConfiguration(vm.PlaytricsModule, "ReturnersReport", "Retention Data", "NCRTable")
+                config: new DataTablesConfiguration(vm.PlaytricsModule, "ReturnersDataTable", "NURR CURR RURR", "NCRTable")
             }]
 
         }

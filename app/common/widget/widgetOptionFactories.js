@@ -77,7 +77,7 @@
 
         return TimeSeriesDataModel;
     }]);
-    pvwidgetModule.factory('DataTableDataModel', function ($interval, datacontext, WidgetDataModel) {
+    pvwidgetModule.factory('DataTableDataModel', ['$interval', 'datacontext', 'WidgetDataModel', 'common' , function ($interval, datacontext, WidgetDataModel, common) {
 
         function DataTableDataModel() {
         }
@@ -87,21 +87,19 @@
         var dc = datacontext;
         DataTableDataModel.prototype.module;
         DataTableDataModel.prototype.metric;
+        DataTableDataModel.prototype.widgetId;
 
         angular.extend(DataTableDataModel.prototype, {
             setup: function(widget, scope){
+
                 WidgetDataModel.prototype.setup.apply(this, arguments);
-                function isEmptyObject(obj) {
-                  for(var prop in obj) {
-                    if (Object.prototype.hasOwnProperty.call(obj, prop)) {
-                      return false;
-                    }
-                  }
-                  return true;
+                scope.dt.modelOptions = scope.modelOptions = widget.dataModelOptions;
+                if(!scope.modelOptions){
+                    var config = scope.config();
+                    this.module = dc[config.dataModelOptions.module.name](scope, true);
+                    this.metric = this.module[config.dataModelOptions.metricName]();                    
+                    return;
                 }                
-                if(!isEmptyObject(widget)){
-                    scope.dt.modelOptions = scope.modelOptions = widget.dataModelOptions;
-                }
                 
                 if(!scope.modelOptions){
                     var config = scope.config();
@@ -113,12 +111,13 @@
                 this.module = dc[scope.modelOptions.module.name](scope);
                 this.metric = module[scope.modelOptions.metricName]();
             },            
-            init: function () {
+            init: function (config) {
                 var WC = new common.widgetControl();
-                var options = this.dataModelOptions;
+                var options = (this.dataModelOptions) ? this.dataModelOptions : config.dataModelOptions;
+                console.log(options)
                 this.widgetId = (options && options.widgetId != null) ? options.widgetId : WC.generateId();
                 options.widgetId = this.widgetId;
-                this.getData(options, metric);
+                this.getData(options);
                 this.updateScope(options);
             },
             getData: function(options, success, fail){
@@ -126,7 +125,8 @@
                 if(!options.ajaxParams && options.dataModelOptions){
                     options = options.dataModelOptions;
                 }
-                // var successFn = (success) ? success : this.metric.successDataTable;
+                console.log("in data tables getData : %o", options);
+                var successFn = (success) ? success : this.metric.successDataTable;
                 var failFn = (fail) ? fail : this.metric.fail;
                 
                 if(options.ajaxParams){
@@ -136,13 +136,14 @@
                         interval: options.ajaxParams.interval.id,
                         start: options.ajaxParams.start,
                         end: options.ajaxParams.end,
-                        chartType: options.ajaxParams.chartType.id
+                        chartType: options.ajaxParams.chartType.id,
+                        callback : successFn
                     }                    
                 } else{
                     params = {}
                 }
                 var processor = this.metric.process;
-                return processor.process(params);               
+                return processor.process(new PlaytricsRequest(params));               
             },
             startInterval: function () {
                 $interval.cancel(this.intervalPromise);
@@ -166,7 +167,7 @@
         });
 
         return DataTableDataModel;
-    });
+    }]);
     pvwidgetModule.factory('EditHtmlDataModel', function ($interval, datacontext, common, WidgetDataModel) {
 
         function EditHtmlDataModel() {
@@ -365,12 +366,15 @@
                 widgetId: null,
                 controllerId: null,
                 seriesId: null,
-                optionsBuilder: (function(x){
-                    console.log("waaaaaaaaaaa : %o", x);
-                    return Object.create(x);
-                })(common.widgetControl().dataTableTools.optionsBuilder),
-                columnBuilder: common.widgetControl().dataTableTools.columnBuilder
-              },
+                ajaxParams: {
+                    game: 'DD2',
+                    region: regions[0],
+                    interval: intervals[1],
+                    start: moment.utc().subtract(14, 'days').toJSON(),
+                    end: moment.utc().toJSON(),
+                    chartType: chartTypes[4]
+                } 
+            },
               settingsModalOptions: opt.DataTableOptions,
               onSettingsClose: function(result, widget, dashboardScope) {
                 // do something to update widgetModel, like the default implementation:
@@ -389,7 +393,15 @@
               dataModelOptions: {
                 widgetId: null,
                 controllerId: null,
-                seriesId: null
+                seriesId: null,
+                ajaxParams: {
+                    game: 'DD2',
+                    region: regions[0],
+                    interval: intervals[1],
+                    start: moment.utc().subtract(14, 'days').toJSON(),
+                    end: moment.utc().toJSON(),
+                    chartType: chartTypes[4]
+                }                
               },
               settingsModalOptions: opt.EditHtmlOptions,
               onSettingsClose: function(result, widget, dashboardScope) {
